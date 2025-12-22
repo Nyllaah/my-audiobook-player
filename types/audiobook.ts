@@ -1,11 +1,20 @@
+export interface AudiobookPart {
+  uri: string;
+  filename: string;
+  duration?: number;
+  partNumber?: number;
+}
+
 export interface Audiobook {
   id: string;
   title: string;
   author?: string;
-  uri: string;
-  duration?: number;
+  uri: string; // For single-file audiobooks, or first part for multi-part
+  parts?: AudiobookPart[]; // For multi-part audiobooks
+  duration?: number; // Total duration across all parts
   artwork?: string;
-  currentPosition?: number;
+  currentPosition?: number; // Position in seconds across all parts
+  currentPart?: number; // Index of the current part being played
   lastPlayed?: number;
   isFinished?: boolean;
   addedDate: number;

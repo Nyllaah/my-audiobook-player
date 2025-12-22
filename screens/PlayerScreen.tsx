@@ -4,6 +4,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
+  Modal,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
@@ -24,6 +26,7 @@ export default function PlayerScreen() {
 
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
+  const [showChapters, setShowChapters] = useState(false);
 
   const playbackRates = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 

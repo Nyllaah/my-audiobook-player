@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Audiobook, PlaybackState } from '@/types/audiobook';
 import { audioPlayerService, PlayerState } from '@/services/audioPlayerService';
 import { storageService } from '@/services/storageService';
+import { Audiobook, PlaybackState } from '@/types/audiobook';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface AudiobookContextType {
   audiobooks: Audiobook[];
@@ -35,7 +35,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
     playbackRate: 1.0,
   });
 
-  // Initialize player and load audiobooks
   useEffect(() => {
     const init = async () => {
       await audioPlayerService.initialize();
@@ -44,10 +43,9 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     };
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
-  // Update playback state periodically
   useEffect(() => {
     const interval = setInterval(async () => {
       const state = await audioPlayerService.getState();
@@ -61,12 +59,10 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
         duration,
         currentBook,
       }));
-    }, 500); // Update every 500ms
+    }, 500); 
 
     return () => clearInterval(interval);
   }, [currentBook]);
-
-  // Save progress periodically
   useEffect(() => {
     if (currentBook && playbackState.position > 0) {
       const saveProgress = async () => {
@@ -74,7 +70,7 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
           currentPosition: playbackState.position,
         });
       };
-      const interval = setInterval(saveProgress, 10000); // Save every 10 seconds
+      const interval = setInterval(saveProgress, 10000); 
       return () => clearInterval(interval);
     }
   }, [currentBook, playbackState.position]);
