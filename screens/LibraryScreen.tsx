@@ -6,10 +6,11 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal } from 'react-native';
 import { sortAudioFiles, detectAudiobookTitle } from '@/utils/audiobookParser';
+import { storageService } from '@/services/storageService';
 
 export default function LibraryScreen() {
   const router = useRouter();
-  const { audiobooks, isLoading, addAudiobook, removeAudiobook, playAudiobook } = useAudiobook();
+  const { audiobooks, isLoading, addAudiobook, removeAudiobook, playAudiobook, refreshLibrary } = useAudiobook();
   
   const [titleDialogVisible, setTitleDialogVisible] = useState(false);
   const [editableTitle, setEditableTitle] = useState('');
@@ -125,7 +126,16 @@ export default function LibraryScreen() {
     if (!item || !item.id) return null;
 
     const handlePlayBook = async () => {
-      await playAudiobook(item);
+      // Refresh library to get the latest saved position
+      await refreshLibrary();
+      // Get the updated audiobook from the refreshed list
+      const updatedBooks = await storageService.getAudiobooks();
+      const updatedBook = updatedBooks.find(b => b.id === item.id);
+      if (updatedBook) {
+        await playAudiobook(updatedBook);
+      } else {
+        await playAudiobook(item);
+      }
       router.push('/player');
     };
 

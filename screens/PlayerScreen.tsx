@@ -22,6 +22,8 @@ export default function PlayerScreen() {
     skipForward,
     skipBackward,
     setPlaybackRate,
+    playAudiobook,
+    saveCurrentProgress,
   } = useAudiobook();
 
   const [isSeeking, setIsSeeking] = useState(false);
@@ -61,6 +63,20 @@ export default function PlayerScreen() {
     setPlaybackRate(playbackRates[nextIndex]);
   };
 
+  const handleSelectChapter = async (partIndex: number) => {
+    if (!currentBook || !currentBook.parts) return;
+    
+    const updatedBook = {
+      ...currentBook,
+      currentPart: partIndex,
+      uri: currentBook.parts[partIndex].uri,
+      currentPosition: 0,
+    };
+    
+    await playAudiobook(updatedBook);
+    setShowChapters(false);
+  };
+
   if (!currentBook) {
     return (
       <View style={styles.container}>
@@ -88,7 +104,10 @@ export default function PlayerScreen() {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.closeButton}
-        onPress={() => router.back()}
+        onPress={async () => {
+          await saveCurrentProgress();
+          router.back();
+        }}
       >
         <Ionicons name="chevron-down" size={32} color="#007AFF" />
       </TouchableOpacity>
@@ -109,6 +128,20 @@ export default function PlayerScreen() {
           </Text>
         )}
       </View>
+
+      {/* Chapter/Part Selector */}
+      {currentBook.parts && currentBook.parts.length > 1 && (
+        <TouchableOpacity
+          style={styles.chapterButton}
+          onPress={() => setShowChapters(true)}
+        >
+          <Ionicons name="list" size={20} color="#007AFF" />
+          <Text style={styles.chapterButtonText}>
+            Part {(currentBook.currentPart || 0) + 1} of {currentBook.parts.length}
+          </Text>
+          <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+        </TouchableOpacity>
+      )}
 
       <View style={styles.progressContainer}>
         <Slider
@@ -141,7 +174,7 @@ export default function PlayerScreen() {
           style={styles.controlButton}
           onPress={skipBackward}
         >
-          <Ionicons name="play-back" size={36} color="#007AFF" />
+          <Ionicons name="play-back" size={32} color="#007AFF" />
           <Text style={styles.skipText}>15s</Text>
         </TouchableOpacity>
 
@@ -151,7 +184,7 @@ export default function PlayerScreen() {
         >
           <Ionicons
             name={playbackState.isPlaying ? 'pause' : 'play'}
-            size={48}
+            size={40}
             color="#FFF"
           />
         </TouchableOpacity>
@@ -160,12 +193,54 @@ export default function PlayerScreen() {
           style={styles.controlButton}
           onPress={skipForward}
         >
-          <Ionicons name="play-forward" size={36} color="#007AFF" />
+          <Ionicons name="play-forward" size={32} color="#007AFF" />
           <Text style={styles.skipText}>30s</Text>
         </TouchableOpacity>
 
         <View style={styles.spacer} />
       </View>
+
+      {/* Chapter Selection Modal */}
+      <Modal
+        visible={showChapters}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowChapters(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.chapterModal}>
+            <View style={styles.chapterHeader}>
+              <Text style={styles.chapterModalTitle}>Select Part</Text>
+              <TouchableOpacity onPress={() => setShowChapters(false)}>
+                <Ionicons name="close" size={28} color="#000" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.chapterList}>
+              {currentBook.parts?.map((part, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.chapterItem,
+                    (currentBook.currentPart || 0) === index && styles.chapterItemActive,
+                  ]}
+                  onPress={() => handleSelectChapter(index)}
+                >
+                  <View style={styles.chapterInfo}>
+                    <Text style={styles.chapterNumber}>Part {index + 1}</Text>
+                    <Text style={styles.chapterName} numberOfLines={2}>
+                      {part.filename}
+                    </Text>
+                  </View>
+                  {(currentBook.currentPart || 0) === index && (
+                    <Ionicons name="checkmark" size={24} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -231,15 +306,16 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    gap: 24,
+    paddingHorizontal: 16,
+    marginBottom: 20,
   },
   speedButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    minWidth: 52,
+    height: 52,
+    paddingHorizontal: 6,
+    borderRadius: 26,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -250,7 +326,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   speedText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#007AFF',
   },
@@ -264,9 +340,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   playButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -308,5 +384,72 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  chapterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+    marginHorizontal: 32,
+    marginVertical: 12,
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  chapterButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  chapterModal: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  chapterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  chapterModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#000',
+  },
+  chapterList: {
+    maxHeight: 400,
+  },
+  chapterItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  chapterItemActive: {
+    backgroundColor: '#F2F2F7',
+  },
+  chapterInfo: {
+    flex: 1,
+  },
+  chapterNumber: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  chapterName: {
+    fontSize: 14,
+    color: '#000',
   },
 });
