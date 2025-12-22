@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,9 @@ export default function PlayerScreen() {
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
   const [showChapters, setShowChapters] = useState(false);
+  const [sleepTimer, setSleepTimer] = useState<number | null>(null);
+  const [showTimerDialog, setShowTimerDialog] = useState(false);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const playbackRates = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
@@ -76,6 +79,46 @@ export default function PlayerScreen() {
     await playAudiobook(updatedBook);
     setShowChapters(false);
   };
+
+  const handleSetTimer = (minutes: number) => {
+    setSleepTimer(minutes);
+    setShowTimerDialog(false);
+  };
+
+  const handleCancelTimer = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    setSleepTimer(null);
+  };
+
+  // Sleep timer countdown
+  useEffect(() => {
+    if (sleepTimer !== null && sleepTimer > 0) {
+      timerIntervalRef.current = setInterval(() => {
+        setSleepTimer((prev) => {
+          if (prev === null || prev <= 1) {
+            // Timer finished - pause playback
+            togglePlayPause();
+            if (timerIntervalRef.current) {
+              clearInterval(timerIntervalRef.current);
+              timerIntervalRef.current = null;
+            }
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 60000); // Decrease every minute
+
+      return () => {
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
+      };
+    }
+  }, [sleepTimer, togglePlayPause]);
 
   if (!currentBook) {
     return (
@@ -158,18 +201,11 @@ export default function PlayerScreen() {
         />
         <View style={styles.timeContainer}>
           <Text style={styles.timeText}>{formatTime(currentPosition)}</Text>
-          <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          <Text style={styles.timeText}>-{formatTime(duration - currentPosition)}</Text>
         </View>
       </View>
 
       <View style={styles.controlsContainer}>
-        <TouchableOpacity
-          style={styles.speedButton}
-          onPress={cyclePlaybackRate}
-        >
-          <Text style={styles.speedText}>{playbackState.playbackRate}x</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.controlButton}
           onPress={skipBackward}
@@ -196,8 +232,28 @@ export default function PlayerScreen() {
           <Ionicons name="play-forward" size={32} color="#007AFF" />
           <Text style={styles.skipText}>30s</Text>
         </TouchableOpacity>
+      </View>
 
-        <View style={styles.spacer} />
+      {/* Speed and Timer Controls */}
+      <View style={styles.secondaryControls}>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={cyclePlaybackRate}
+        >
+          <Ionicons name="speedometer-outline" size={20} color="#007AFF" />
+          <Text style={styles.secondaryButtonText}>{playbackState.playbackRate}x</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => sleepTimer ? handleCancelTimer() : setShowTimerDialog(true)}
+          onLongPress={sleepTimer ? handleCancelTimer : undefined}
+        >
+          <Ionicons name="timer-outline" size={20} color={sleepTimer ? '#FF3B30' : '#007AFF'} />
+          <Text style={[styles.secondaryButtonText, sleepTimer ? styles.timerActive : null]}>
+            {sleepTimer ? `${sleepTimer}m` : 'Timer'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Chapter Selection Modal */}
@@ -238,6 +294,40 @@ export default function PlayerScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Sleep Timer Dialog */}
+      <Modal
+        visible={showTimerDialog}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowTimerDialog(false)}
+      >
+        <View style={styles.timerModalOverlay}>
+          <View style={styles.timerDialog}>
+            <Text style={styles.modalTitle}>Sleep Timer</Text>
+            <Text style={styles.timerSubtitle}>Playback will pause after:</Text>
+            
+            <View style={styles.timerOptions}>
+              {[5, 10, 15, 30, 45, 60].map((minutes) => (
+                <TouchableOpacity
+                  key={minutes}
+                  style={styles.timerOption}
+                  onPress={() => handleSetTimer(minutes)}
+                >
+                  <Text style={styles.timerOptionText}>{minutes} min</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.timerCancelButton}
+              onPress={() => setShowTimerDialog(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -306,29 +396,11 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  speedButton: {
-    minWidth: 52,
-    height: 52,
-    paddingHorizontal: 6,
-    borderRadius: 26,
-    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  speedText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#007AFF',
+    paddingHorizontal: 16,
+    gap: 32,
+    marginBottom: 16,
   },
   controlButton: {
     alignItems: 'center',
@@ -352,8 +424,37 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  spacer: {
-    width: 60,
+  secondaryControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 32,
+    marginBottom: 20,
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    minWidth: 100,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  secondaryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  timerActive: {
+    color: '#FF3B30',
   },
   emptyState: {
     flex: 1,
@@ -425,6 +526,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
   },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
   chapterList: {
     maxHeight: 400,
   },
@@ -451,5 +559,55 @@ const styles = StyleSheet.create({
   chapterName: {
     fontSize: 14,
     color: '#000',
+  },
+  timerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timerDialog: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    maxWidth: 320,
+  },
+  timerSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  timerOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 20,
+  },
+  timerOption: {
+    flex: 1,
+    minWidth: '30%',
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  timerOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  timerCancelButton: {
+    backgroundColor: '#F2F2F7',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

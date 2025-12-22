@@ -66,17 +66,7 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   }, [currentBook]);
   // Save progress function
   const saveCurrentProgress = useCallback(async () => {
-    console.log('saveCurrentProgress called', {
-      hasCurrentBook: !!currentBook,
-      position: playbackState.position,
-      bookId: currentBook?.id,
-      bookTitle: currentBook?.title,
-    });
-    
-    if (!currentBook || playbackState.position <= 0) {
-      console.log('Skipping save - no book or position <= 0');
-      return;
-    }
+    if (!currentBook || playbackState.position <= 0) return;
     
     const updates: Partial<Audiobook> = {
       currentPosition: playbackState.position,
@@ -85,12 +75,9 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
     // Save current part for multi-part audiobooks
     if (currentBook.parts && currentBook.parts.length > 1) {
       updates.currentPart = currentBook.currentPart || 0;
-      console.log('Saving multi-part progress:', updates);
     }
     
-    console.log('Saving progress:', currentBook.id, updates);
     await storageService.updateAudiobook(currentBook.id, updates);
-    console.log('Progress saved successfully');
   }, [currentBook, playbackState.position]);
 
   // Auto-save progress every 10 seconds

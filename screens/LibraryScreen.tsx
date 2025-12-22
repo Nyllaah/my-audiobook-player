@@ -1,12 +1,12 @@
 import { useAudiobook } from '@/context/AudiobookContext';
+import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
+import { detectAudiobookTitle, sortAudioFiles } from '@/utils/audiobookParser';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal } from 'react-native';
-import { sortAudioFiles, detectAudiobookTitle } from '@/utils/audiobookParser';
-import { storageService } from '@/services/storageService';
+import { Alert, FlatList, Modal, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -50,11 +50,10 @@ export default function LibraryScreen() {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
         copyToCacheDirectory: true,
-        multiple: true, // Allow multiple selection
+        multiple: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        // Handle single file
         if (result.assets.length === 1) {
           const file = result.assets[0];
           const audiobook: Audiobook = {
@@ -69,19 +68,15 @@ export default function LibraryScreen() {
           return;
         }
 
-        // Handle multiple files
         const files = result.assets.map(asset => ({
           name: asset.name,
           uri: asset.uri,
         }));
 
-        // Sort files by detected part numbers
         const sortedParts = sortAudioFiles(files);
         
-        // Detect common title
         const detectedTitle = detectAudiobookTitle(files);
 
-        // Show title editing dialog
         setPendingAudiobook({ sortedParts, detectedTitle });
         setEditableTitle(detectedTitle);
         setTitleDialogVisible(true);
@@ -95,7 +90,7 @@ export default function LibraryScreen() {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Loading...</Text>
+        <Text style={styles.emptyTitle}>Loading...</Text>
       </View>
     );
   }
@@ -126,9 +121,7 @@ export default function LibraryScreen() {
     if (!item || !item.id) return null;
 
     const handlePlayBook = async () => {
-      // Refresh library to get the latest saved position
       await refreshLibrary();
-      // Get the updated audiobook from the refreshed list
       const updatedBooks = await storageService.getAudiobooks();
       const updatedBook = updatedBooks.find(b => b.id === item.id);
       if (updatedBook) {
@@ -179,10 +172,23 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F2F2F7" />
+      {/* Custom Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Library</Text>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={pickAudioFiles}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
+
       {audiobooks.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.title}>No Audiobooks</Text>
+          <Text style={styles.emptyTitle}>No Audiobooks</Text>
           <Text style={styles.subtitle}>Add some audiobooks to get started</Text>
         </View>
       ) : (
@@ -192,13 +198,6 @@ export default function LibraryScreen() {
           keyExtractor={(item) => item.id}
         />
       )}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={pickAudioFiles}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color="#FFF" />
-      </TouchableOpacity>
 
       {/* Title Edit Modal */}
       <Modal
@@ -258,7 +257,7 @@ export default function LibraryScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -267,7 +266,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
   },
-  title: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 45,
+    paddingBottom: 16,
+    backgroundColor: '#F2F2F7',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000',
+  },
+  headerButton: {
+    padding: 4,
+  },
+  emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
@@ -321,22 +337,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 8,
   },
-  addButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
