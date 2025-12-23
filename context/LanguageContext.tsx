@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useReducer } from 'react';
 import i18n from '@/i18n';
 
 type Language = 'en' | 'pt-BR';
@@ -16,6 +16,7 @@ const LANGUAGE_KEY = '@audiobook_language';
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   useEffect(() => {
     loadLanguage();
@@ -45,6 +46,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     i18n.locale = lang;
     try {
       await AsyncStorage.setItem(LANGUAGE_KEY, lang);
+      // Force re-render to update all translations
+      forceUpdate();
     } catch (error) {
       console.error('Failed to save language:', error);
     }

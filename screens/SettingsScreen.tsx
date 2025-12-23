@@ -32,11 +32,11 @@ export default function SettingsScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
       </View>
       
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Playback</Text>
+        <Text style={styles.sectionTitle}>{t('settings.playback')}</Text>
         
         {/* Playback Speed */}
         <TouchableOpacity
@@ -46,7 +46,7 @@ export default function SettingsScreen() {
         >
           <View style={styles.settingLeft}>
             <Ionicons name="speedometer-outline" size={24} color={colors.primary} />
-            <Text style={styles.settingTitle}>Default Playback Speed</Text>
+            <Text style={styles.settingTitle}>{t('settings.defaultSpeed')}</Text>
           </View>
           <View style={styles.settingRight}>
             <Text style={styles.settingValue}>{defaultPlaybackSpeed}x</Text>
@@ -62,10 +62,10 @@ export default function SettingsScreen() {
         >
           <View style={styles.settingLeft}>
             <Ionicons name="play-forward" size={24} color={colors.primary} />
-            <Text style={styles.settingTitle}>Skip Forward</Text>
+            <Text style={styles.settingTitle}>{t('settings.skipForward')}</Text>
           </View>
           <View style={styles.settingRight}>
-            <Text style={styles.settingValue}>{skipForwardSeconds} seconds</Text>
+            <Text style={styles.settingValue}>{t('settings.seconds', { count: skipForwardSeconds })}</Text>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </View>
         </TouchableOpacity>
@@ -78,21 +78,21 @@ export default function SettingsScreen() {
         >
           <View style={styles.settingLeft}>
             <Ionicons name="play-back" size={24} color={colors.primary} />
-            <Text style={styles.settingTitle}>Skip Backward</Text>
+            <Text style={styles.settingTitle}>{t('settings.skipBackward')}</Text>
           </View>
           <View style={styles.settingRight}>
-            <Text style={styles.settingValue}>{skipBackwardSeconds} seconds</Text>
+            <Text style={styles.settingValue}>{t('settings.seconds', { count: skipBackwardSeconds })}</Text>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </View>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.sectionTitle}>{t('settings.appearance')}</Text>
         <View style={styles.settingItem}>
           <View style={styles.settingLeft}>
             <Ionicons name="moon-outline" size={24} color={colors.primary} />
-            <Text style={styles.settingTitle}>Dark Theme</Text>
+            <Text style={styles.settingTitle}>{t('settings.darkTheme')}</Text>
           </View>
           <Switch
             value={isDark}
@@ -110,7 +110,7 @@ export default function SettingsScreen() {
         >
           <View style={styles.settingLeft}>
             <Ionicons name="language" size={24} color={colors.primary} />
-            <Text style={styles.settingTitle}>Language</Text>
+            <Text style={styles.settingTitle}>{t('settings.language')}</Text>
           </View>
           <View style={styles.settingRight}>
             <Text style={styles.settingValue}>{t(`languages.${language}`)}</Text>
@@ -120,13 +120,13 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
+        <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
         <View style={styles.aboutContainer}>
-          <Ionicons name="book" size={60} color="#007AFF" />
-          <Text style={styles.appName}>Audiobook Player</Text>
-          <Text style={styles.appVersion}>Version 1.0.0</Text>
+          <Ionicons name="book" size={60} color={colors.primary} />
+          <Text style={styles.appName}>{t('settings.appName')}</Text>
+          <Text style={styles.appVersion}>{t('settings.version')}</Text>
           <Text style={styles.appDescription}>
-            A beautiful and intuitive audiobook player for your favorite stories.
+            {t('settings.description')}
           </Text>
         </View>
       </View>
@@ -144,7 +144,7 @@ export default function SettingsScreen() {
           onPress={() => setSpeedModalVisible(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Playback Speed</Text>
+            <Text style={styles.modalTitle}>{t('modals.playbackSpeed')}</Text>
             <View style={styles.optionsContainer}>
               {playbackSpeeds.map((speed) => (
                 <TouchableOpacity
@@ -186,7 +186,7 @@ export default function SettingsScreen() {
           onPress={() => setForwardModalVisible(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Skip Forward</Text>
+            <Text style={styles.modalTitle}>{t('settings.skipForward')}</Text>
             <View style={styles.optionsContainer}>
               {skipOptions.map((seconds) => (
                 <TouchableOpacity
@@ -228,7 +228,7 @@ export default function SettingsScreen() {
           onPress={() => setBackwardModalVisible(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Skip Backward</Text>
+            <Text style={styles.modalTitle}>{t('settings.skipBackward')}</Text>
             <View style={styles.optionsContainer}>
               {skipOptions.map((seconds) => (
                 <TouchableOpacity
@@ -435,6 +435,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -446,6 +447,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+    textAlign: 'center',
   },
   optionTextActive: {
     color: '#FFF',

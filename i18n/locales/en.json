@@ -4,6 +4,7 @@
     "empty": "No audiobooks yet",
     "emptyDescription": "Add your first audiobook to get started",
     "addButton": "Add Audiobook",
+    "parts": "{{count}} parts",
     "tips": {
       "import": "Tap + to import an audiobook from your device",
       "edit": "Long press or tap the menu to edit or delete",
@@ -19,6 +20,7 @@
     "chapters": "Chapters",
     "selectPart": "Select Part",
     "part": "Part {{current}} of {{total}}",
+    "partNumber": "Part {{number}}",
     "sleepTimer": "Sleep Timer",
     "setSleepTimer": "Set Sleep Timer",
     "minutes": "{{count}} min",

@@ -9,10 +9,12 @@ import { useRouter } from 'expo-router';
 import React, { useState, useMemo } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function LibraryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const { audiobooks, isLoading, addAudiobook, removeAudiobook, playAudiobook, refreshLibrary, currentBook, setCurrentBook } = useAudiobook();
   
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -254,7 +256,7 @@ export default function LibraryScreen() {
           <View style={styles.metaRow}>
             {item.parts && item.parts.length > 1 ? (
               <Text style={styles.partCount}>
-                {item.parts.length} parts
+                {t('library.parts', { count: item.parts.length })}
               </Text>
             ) : null}
             {item.duration ? (
@@ -283,7 +285,7 @@ export default function LibraryScreen() {
     <View style={styles.container}>
       {/* Custom Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Library</Text>
+        <Text style={styles.headerTitle}>{t('library.title')}</Text>
         <TouchableOpacity
           style={styles.headerButton}
           onPress={pickAudioFiles}
@@ -295,13 +297,13 @@ export default function LibraryScreen() {
 
       {audiobooks.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="headset-outline" size={64} color="#C7C7CC" style={styles.emptyIcon} />
-          <Text style={styles.emptyTitle}>No Audiobooks</Text>
-          <Text style={styles.subtitle}>Tap the + button above to add audiobooks</Text>
+          <Ionicons name="headset-outline" size={64} color={colors.textTertiary} style={styles.emptyIcon} />
+          <Text style={styles.emptyTitle}>{t('library.empty')}</Text>
+          <Text style={styles.subtitle}>{t('library.emptyDescription')}</Text>
           <View style={styles.tipContainer}>
-            <Ionicons name="information-circle-outline" size={16} color="#007AFF" />
+            <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
             <Text style={styles.tipText}>
-              Tip: For faster imports, download files to your device first before adding them
+              {t('library.tips.import')}
             </Text>
           </View>
         </View>

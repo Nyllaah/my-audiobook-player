@@ -4,6 +4,7 @@
     "empty": "Nenhum audiolivro ainda",
     "emptyDescription": "Adicione seu primeiro audiolivro para começar",
     "addButton": "Adicionar Audiolivro",
+    "parts": "{{count}} partes",
     "tips": {
       "import": "Toque em + para importar um audiolivro do seu dispositivo",
       "edit": "Pressione longamente ou toque no menu para editar ou excluir",
@@ -19,6 +20,7 @@
     "chapters": "Capítulos",
     "selectPart": "Selecionar Parte",
     "part": "Parte {{current}} de {{total}}",
+    "partNumber": "Parte {{number}}",
     "sleepTimer": "Timer de Sono",
     "setSleepTimer": "Definir Timer de Sono",
     "minutes": "{{count}} min",

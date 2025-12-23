@@ -1,9 +1,10 @@
 import { useAudiobook } from '@/context/AudiobookContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   Modal,
@@ -17,6 +18,7 @@ import {
 export default function PlayerScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const {
     currentBook,
     playbackState,
@@ -98,13 +100,11 @@ export default function PlayerScreen() {
     setSleepTimer(null);
   };
 
-  // Sleep timer countdown
   useEffect(() => {
     if (sleepTimer !== null && sleepTimer > 0) {
       timerIntervalRef.current = setInterval(() => {
         setSleepTimer((prev) => {
           if (prev === null || prev <= 1) {
-            // Timer finished - pause playback
             togglePlayPause();
             if (timerIntervalRef.current) {
               clearInterval(timerIntervalRef.current);
@@ -114,7 +114,7 @@ export default function PlayerScreen() {
           }
           return prev - 1;
         });
-      }, 60000); // Decrease every minute
+      }, 60000);
 
       return () => {
         if (timerIntervalRef.current) {
@@ -193,7 +193,7 @@ export default function PlayerScreen() {
         >
           <Ionicons name="list" size={20} color="#007AFF" />
           <Text style={styles.chapterButtonText}>
-            Part {(currentBook.currentPart || 0) + 1} of {currentBook.parts.length}
+            {t('player.part', { current: (currentBook.currentPart || 0) + 1, total: currentBook.parts.length })}
           </Text>
           <Ionicons name="chevron-forward" size={20} color="#007AFF" />
         </TouchableOpacity>
@@ -279,7 +279,7 @@ export default function PlayerScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.chapterModal}>
             <View style={styles.chapterHeader}>
-              <Text style={styles.chapterModalTitle}>Select Part</Text>
+              <Text style={styles.chapterModalTitle}>{t('player.selectPart')}</Text>
               <TouchableOpacity onPress={() => setShowChapters(false)}>
                 <Ionicons name="close" size={28} color="#000" />
               </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function PlayerScreen() {
                   onPress={() => handleSelectChapter(index)}
                 >
                   <View style={styles.chapterInfo}>
-                    <Text style={styles.chapterNumber}>Part {index + 1}</Text>
+                    <Text style={styles.chapterNumber}>{t('player.partNumber', { number: index + 1 })}</Text>
                     <Text style={styles.chapterName} numberOfLines={2}>
                       {part.filename}
                     </Text>
