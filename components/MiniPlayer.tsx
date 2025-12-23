@@ -2,7 +2,7 @@ import { useAudiobook } from '@/context/AudiobookContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 
 export default function MiniPlayer() {
   const router = useRouter();
@@ -37,7 +37,14 @@ export default function MiniPlayer() {
       
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Ionicons name="book" size={32} color="#007AFF" />
+          {currentBook.artwork ? (
+            <Image 
+              source={{ uri: currentBook.artwork }} 
+              style={styles.coverImage}
+            />
+          ) : (
+            <Ionicons name="book" size={32} color="#007AFF" />
+          )}
         </View>
         
         <View style={styles.info}>
@@ -104,6 +111,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
   },
   info: {
     flex: 1,

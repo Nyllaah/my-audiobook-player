@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Modal,
-} from 'react-native';
+import { useAudiobook } from '@/context/AudiobookContext';
+import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAudiobook } from '@/context/AudiobookContext';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function PlayerScreen() {
   const router = useRouter();
@@ -157,7 +158,15 @@ export default function PlayerScreen() {
 
       <View style={styles.artworkContainer}>
         <View style={styles.artwork}>
-          <Ionicons name="book" size={120} color="#007AFF" />
+          {currentBook.artwork ? (
+            <Image 
+              source={{ uri: currentBook.artwork }} 
+              style={styles.artworkImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="book" size={120} color="#007AFF" />
+          )}
         </View>
       </View>
 
@@ -220,7 +229,7 @@ export default function PlayerScreen() {
         >
           <Ionicons
             name={playbackState.isPlaying ? 'pause' : 'play'}
-            size={40}
+            size={32}
             color="#FFF"
           />
         </TouchableOpacity>
@@ -341,7 +350,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   closeButton: {
-    padding: 16,
+    paddingTop: 32,
+    paddingHorizontal: 16,
     alignSelf: 'flex-start',
   },
   artworkContainer: {
@@ -361,6 +371,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 10,
+    overflow: 'hidden',
+  },
+  artworkImage: {
+    width: '100%',
+    height: '100%',
   },
   infoContainer: {
     paddingHorizontal: 32,
@@ -371,16 +386,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   author: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
   },
   progressContainer: {
     paddingHorizontal: 32,
-    marginBottom: 32,
+    marginBottom: 16,
   },
   slider: {
     width: '100%',
@@ -400,7 +415,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     gap: 32,
-    marginBottom: 16,
+    marginBottom:32,
   },
   controlButton: {
     alignItems: 'center',
@@ -409,7 +424,6 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 12,
     color: '#8E8E93',
-    marginTop: 4,
   },
   playButton: {
     width: 64,
@@ -492,7 +506,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFF',
     marginHorizontal: 32,
-    marginVertical: 12,
     padding: 12,
     borderRadius: 8,
     gap: 8,

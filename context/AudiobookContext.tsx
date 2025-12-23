@@ -6,6 +6,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 interface AudiobookContextType {
   audiobooks: Audiobook[];
   currentBook: Audiobook | null;
+  setCurrentBook: (book: Audiobook | null) => void;
   playbackState: PlaybackState;
   isLoading: boolean;
   addAudiobook: (audiobook: Audiobook) => Promise<void>;
@@ -99,8 +100,9 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
 
   const addAudiobook = useCallback(async (audiobook: Audiobook) => {
     await storageService.addAudiobook(audiobook);
-    await refreshLibrary();
-  }, [refreshLibrary]);
+    const books = await storageService.getAudiobooks();
+    setAudiobooks(books);
+  }, []);
 
   const removeAudiobook = useCallback(async (id: string) => {
     await storageService.deleteAudiobook(id);
@@ -164,13 +166,22 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       currentPosition: position,
     });
     await refreshLibrary();
-  }, [refreshLibrary]);
+    // Update currentBook if it's the one being updated
+    if (currentBook?.id === id) {
+      const books = await storageService.getAudiobooks();
+      const updatedBook = books.find(b => b.id === id);
+      if (updatedBook) {
+        setCurrentBook(updatedBook);
+      }
+    }
+  }, [refreshLibrary, currentBook]);
 
   return (
     <AudiobookContext.Provider
       value={{
         audiobooks,
         currentBook,
+        setCurrentBook,
         playbackState,
         isLoading,
         addAudiobook,
