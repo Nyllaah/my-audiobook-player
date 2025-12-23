@@ -157,38 +157,6 @@ Run tests with vitest:
 yarn test
 ```
 
-## 📦 Building for Production
-
-### Using EAS Build
-
-1. **Install EAS CLI**
-   ```bash
-   yarn global add eas-cli
-   ```
-
-2. **Configure EAS**
-   ```bash
-   eas build:configure
-   ```
-
-3. **Build for iOS**
-   ```bash
-   eas build --platform ios
-   ```
-
-4. **Build for Android**
-   ```bash
-   eas build --platform android
-   ```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
 ## 🙏 Acknowledgments
 
 - Built with [Expo](https://expo.dev/)
