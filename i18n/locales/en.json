@@ -13,6 +13,10 @@
     "actions": {
       "edit": "Edit",
       "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete Audiobook",
+      "message": "Are you sure you want to delete \"{{title}}\"?"
     }
   },
   "player": {
@@ -44,6 +48,7 @@
   "modals": {
     "addAudiobook": "Add Audiobook",
     "editAudiobook": "Edit Audiobook",
+    "editAudiobookTitle": "Edit Audiobook Title",
     "enterTitle": "Enter audiobook title",
     "title": "Title",
     "author": "Author (optional)",
@@ -55,7 +60,9 @@
     "loading": "Loading...",
     "importing": "Importing audiobook...",
     "playbackSpeed": "Playback Speed",
-    "selectLanguage": "Select Language"
+    "selectLanguage": "Select Language",
+    "filesSelected": "{{count}} files selected",
+    "andMore": "...and {{count}} more"
   },
   "common": {
     "delete": "Delete",

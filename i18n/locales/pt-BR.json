@@ -13,6 +13,10 @@
     "actions": {
       "edit": "Editar",
       "delete": "Excluir"
+    },
+    "deleteConfirm": {
+      "title": "Excluir Audiolivro",
+      "message": "Tem certeza que deseja excluir \"{{title}}\"?"
     }
   },
   "player": {
@@ -44,6 +48,7 @@
   "modals": {
     "addAudiobook": "Adicionar Audiolivro",
     "editAudiobook": "Editar Audiolivro",
+    "editAudiobookTitle": "Editar Título do Audiolivro",
     "enterTitle": "Digite o título do audiolivro",
     "title": "Título",
     "author": "Autor (opcional)",
@@ -55,7 +60,9 @@
     "loading": "Carregando...",
     "importing": "Importando audiolivro...",
     "playbackSpeed": "Velocidade de Reprodução",
-    "selectLanguage": "Selecionar Idioma"
+    "selectLanguage": "Selecionar Idioma",
+    "filesSelected": "{{count}} arquivos selecionados",
+    "andMore": "...e mais {{count}}"
   },
   "common": {
     "delete": "Excluir",
