@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { AudiobookProvider } from '@/context/AudiobookContext';
+import { SettingsProvider } from '@/context/SettingsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 export const unstable_settings = {
@@ -13,15 +14,17 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <AudiobookProvider>
-        <NavigationThemeProvider value={DefaultTheme}>
-          <Stack initialRouteName="(tabs)">
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="player" options={{ presentation: 'modal', headerShown: false }} />
-          </Stack>
-          <StatusBar style="auto" />
-        </NavigationThemeProvider>
-      </AudiobookProvider>
+      <SettingsProvider>
+        <AudiobookProvider>
+          <NavigationThemeProvider value={DefaultTheme}>
+            <Stack initialRouteName="(tabs)">
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="player" options={{ presentation: 'modal', headerShown: false }} />
+            </Stack>
+            <StatusBar style="auto" />
+          </NavigationThemeProvider>
+        </AudiobookProvider>
+      </SettingsProvider>
     </ThemeProvider>
   );
 }
