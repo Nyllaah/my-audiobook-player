@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SettingsScreen() {
+  const { isDark, toggleTheme, colors } = useTheme();
+  
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  
   const settingsItems = [
     {
       icon: 'speedometer-outline' as const,
@@ -55,6 +61,22 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        <View style={styles.settingItem}>
+          <View style={styles.settingLeft}>
+            <Ionicons name="moon-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingTitle, { color: colors.text }]}>Dark Theme</Text>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#E5E5EA', true: colors.primary }}
+            thumbColor="#FFF"
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.aboutContainer}>
           <Ionicons name="book" size={60} color="#007AFF" />
@@ -69,10 +91,10 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   section: {
     marginTop: 24,
@@ -81,7 +103,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: colors.textTertiary,
     textTransform: 'uppercase',
     marginBottom: 12,
     paddingHorizontal: 4,
@@ -90,9 +112,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     padding: 16,
-    marginBottom: 1,
+    marginBottom: 8,
+    borderRadius: 12,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -101,7 +124,7 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    color: '#000',
+    color: colors.text,
   },
   settingRight: {
     flexDirection: 'row',
@@ -110,10 +133,10 @@ const styles = StyleSheet.create({
   },
   settingValue: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textTertiary,
   },
   aboutContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',
@@ -121,17 +144,17 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
     marginTop: 16,
   },
   appVersion: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textTertiary,
     marginTop: 4,
   },
   appDescription: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textTertiary,
     textAlign: 'center',
     marginTop: 16,
     lineHeight: 24,

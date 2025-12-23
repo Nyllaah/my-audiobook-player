@@ -1,30 +1,35 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
 import MiniPlayer from '@/components/MiniPlayer';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+  const { colors } = useTheme();
+  
   return (
     <>
       <Tabs
         initialRouteName="index"
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textTertiary,
           headerShown: false,
           tabBarButton: HapticTab,
+          tabBarStyle: {
+            backgroundColor: colors.backgroundLight,
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+          },
         }}>
         <Tabs.Screen
           name="index"
           options={{
             title: 'Library',
             headerShown: false,
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
+            tabBarIcon: ({ color }) => <Ionicons name="library" size={24} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -32,7 +37,11 @@ export default function TabLayout() {
           options={{
             title: 'Settings',
             headerShown: true,
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+            tabBarIcon: ({ color }) => <Ionicons name="settings" size={24} color={color} />,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.text,
           }}
         />
       </Tabs>

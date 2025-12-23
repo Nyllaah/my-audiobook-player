@@ -1,12 +1,16 @@
 import { useAudiobook } from '@/context/AudiobookContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 
 export default function MiniPlayer() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { currentBook, playbackState, togglePlayPause } = useAudiobook();
+  
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (!currentBook) return null;
 
@@ -74,15 +78,15 @@ export default function MiniPlayer() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 65,
     left: 0,
     right: 0,
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -92,11 +96,11 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 3,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: colors.border,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   content: {
     flexDirection: 'row',
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -123,12 +127,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text,
     marginBottom: 4,
   },
   time: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.textTertiary,
   },
   playButton: {
     width: 44,

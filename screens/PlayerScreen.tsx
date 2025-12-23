@@ -1,8 +1,9 @@
 import { useAudiobook } from '@/context/AudiobookContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Image,
   Modal,
@@ -15,6 +16,7 @@ import {
 
 export default function PlayerScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const {
     currentBook,
     playbackState,
@@ -26,6 +28,8 @@ export default function PlayerScreen() {
     playAudiobook,
     saveCurrentProgress,
   } = useAudiobook();
+  
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
@@ -344,10 +348,10 @@ export default function PlayerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   closeButton: {
     paddingTop: 32,
@@ -363,7 +367,7 @@ const styles = StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 20,
-    backgroundColor: '#E5F1FF',
+    backgroundColor: colors.artworkBackground,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -384,13 +388,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 4,
   },
   author: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   progressContainer: {
@@ -429,10 +433,10 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -452,7 +456,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderRadius: 20,
     minWidth: 100,
     justifyContent: 'center',
@@ -465,7 +469,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: colors.primary,
   },
   timerActive: {
     color: '#FF3B30',
@@ -504,7 +508,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     marginHorizontal: 32,
     padding: 12,
     borderRadius: 8,
@@ -512,7 +516,7 @@ const styles = StyleSheet.create({
   },
   chapterButtonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -521,7 +525,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   chapterModal: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '70%',
@@ -537,12 +541,12 @@ const styles = StyleSheet.create({
   chapterModalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -555,23 +559,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: colors.border,
   },
   chapterItemActive: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   chapterInfo: {
     flex: 1,
   },
   chapterNumber: {
     fontSize: 12,
-    color: '#007AFF',
+    color: colors.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
   chapterName: {
     fontSize: 14,
-    color: '#000',
+    color: colors.text,
   },
   timerModalOverlay: {
     flex: 1,
@@ -580,7 +584,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timerDialog: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderRadius: 16,
     padding: 24,
     width: '80%',
@@ -588,7 +592,7 @@ const styles = StyleSheet.create({
   },
   timerSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -601,7 +605,7 @@ const styles = StyleSheet.create({
   timerOption: {
     flex: 1,
     minWidth: '30%',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     paddingVertical: 16,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -610,16 +614,16 @@ const styles = StyleSheet.create({
   timerOptionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: colors.primary,
   },
   timerCancelButton: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#000',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },

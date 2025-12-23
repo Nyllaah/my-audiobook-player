@@ -6,12 +6,16 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function LibraryScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { audiobooks, isLoading, addAudiobook, removeAudiobook, playAudiobook, refreshLibrary, currentBook, setCurrentBook } = useAudiobook();
+  
+  const styles = useMemo(() => createStyles(colors), [colors]);
   
   const [titleDialogVisible, setTitleDialogVisible] = useState(false);
   const [editableTitle, setEditableTitle] = useState('');
@@ -26,6 +30,8 @@ export default function LibraryScreen() {
   const [editAuthor, setEditAuthor] = useState('');
   const [editCoverUri, setEditCoverUri] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [actionMenuVisible, setActionMenuVisible] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Audiobook | null>(null);
 
   const handleConfirmTitle = async () => {
     if (!pendingAudiobook) return;
@@ -258,22 +264,17 @@ export default function LibraryScreen() {
             ) : null}
           </View>
         </View>
-        <View style={styles.itemActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleEditBook(item)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="create-outline" size={22} color="#007AFF" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleDeleteBook(item)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="trash-outline" size={22} color="#FF3B30" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            setSelectedBook(item);
+            setActionMenuVisible(true);
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="ellipsis-vertical" size={20} color="#8E8E93" />
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -447,6 +448,44 @@ export default function LibraryScreen() {
         </View>
       </Modal>
 
+      {/* Action Menu Modal */}
+      <Modal
+        visible={actionMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActionMenuVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.actionMenuOverlay}
+          activeOpacity={1}
+          onPress={() => setActionMenuVisible(false)}
+        >
+          <View style={styles.actionMenuContainer}>
+            <TouchableOpacity
+              style={styles.actionMenuItem}
+              onPress={() => {
+                setActionMenuVisible(false);
+                if (selectedBook) handleEditBook(selectedBook);
+              }}
+            >
+              <Ionicons name="create-outline" size={22} color="#007AFF" />
+              <Text style={styles.actionMenuText}>Edit</Text>
+            </TouchableOpacity>
+            <View style={styles.actionMenuDivider} />
+            <TouchableOpacity
+              style={styles.actionMenuItem}
+              onPress={() => {
+                setActionMenuVisible(false);
+                if (selectedBook) handleDeleteBook(selectedBook);
+              }}
+            >
+              <Ionicons name="trash-outline" size={22} color="#FF3B30" />
+              <Text style={[styles.actionMenuText, { color: '#FF3B30' }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Loading Modal */}
       <Modal
         visible={isAdding}
@@ -464,10 +503,10 @@ export default function LibraryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -476,12 +515,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 45,
     paddingBottom: 16,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
   },
   headerButton: {
     padding: 4,
@@ -502,7 +541,7 @@ const styles = StyleSheet.create({
   tipContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.blueLight,
     padding: 12,
     borderRadius: 8,
     marginHorizontal: 32,
@@ -512,7 +551,7 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: '#1976D2',
+    color: colors.blueDark,
     lineHeight: 18,
   },
   empty: {
@@ -523,7 +562,7 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 8,
@@ -541,7 +580,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -549,14 +588,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 4,
-    color: '#000',
+    color: colors.text,
   },
   author: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 12,
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   metaRow: {
@@ -573,21 +611,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
-  itemActions: {
-    flexDirection: 'row',
-    gap: 2,
+  moreButton: {
+    padding: 8,
   },
-  actionButton: {
-    padding: 4,
-  },
-  modalOverlay: {
+  actionMenuOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  actionMenuContainer: {
+    backgroundColor: colors.backgroundCard,
+    borderRadius: 12,
+    minWidth: 200,
+    overflow: 'hidden',
+  },
+  actionMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  actionMenuText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  actionMenuDivider: {
+    height: 1,
+    backgroundColor: colors.divider,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   modalContent: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderRadius: 12,
     padding: 24,
     width: '85%',
@@ -597,11 +657,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000',
+    color: colors.text,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   filePreview: {
@@ -646,7 +706,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -662,7 +722,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     borderRadius: 8,
   },
   pickCoverText: {
@@ -672,12 +732,13 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     borderWidth: 1,
-    borderColor: '#CCC',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     marginBottom: 20,
-    color: '#000',
+    color: colors.text,
+    backgroundColor: colors.backgroundLight,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -712,7 +773,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundCard,
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',
@@ -721,7 +782,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#000',
+    color: colors.text,
     fontWeight: '600',
   },
 });

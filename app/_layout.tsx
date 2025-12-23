@@ -1,27 +1,27 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AudiobookProvider } from '@/context/AudiobookContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <AudiobookProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack initialRouteName="(tabs)">
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="player" options={{ presentation: 'modal', headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AudiobookProvider>
+    <ThemeProvider>
+      <AudiobookProvider>
+        <NavigationThemeProvider value={DefaultTheme}>
+          <Stack initialRouteName="(tabs)">
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="player" options={{ presentation: 'modal', headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </NavigationThemeProvider>
+      </AudiobookProvider>
+    </ThemeProvider>
   );
 }
