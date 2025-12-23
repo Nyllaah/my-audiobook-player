@@ -1,0 +1,69 @@
+{
+  "library": {
+    "title": "Library",
+    "empty": "No audiobooks yet",
+    "emptyDescription": "Add your first audiobook to get started",
+    "addButton": "Add Audiobook",
+    "tips": {
+      "import": "Tap + to import an audiobook from your device",
+      "edit": "Long press or tap the menu to edit or delete",
+      "play": "Tap any audiobook to start listening"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    }
+  },
+  "player": {
+    "speed": "Speed",
+    "chapters": "Chapters",
+    "selectPart": "Select Part",
+    "part": "Part {{current}} of {{total}}",
+    "sleepTimer": "Sleep Timer",
+    "setSleepTimer": "Set Sleep Timer",
+    "minutes": "{{count}} min",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings",
+    "playback": "Playback",
+    "appearance": "Appearance",
+    "about": "About",
+    "defaultSpeed": "Default Playback Speed",
+    "skipForward": "Skip Forward",
+    "skipBackward": "Skip Backward",
+    "darkTheme": "Dark Theme",
+    "language": "Language",
+    "appName": "Audiobook Player",
+    "version": "Version 1.0.0",
+    "description": "A beautiful and intuitive audiobook player for your favorite stories.",
+    "seconds": "{{count}} seconds"
+  },
+  "modals": {
+    "addAudiobook": "Add Audiobook",
+    "editAudiobook": "Edit Audiobook",
+    "enterTitle": "Enter audiobook title",
+    "title": "Title",
+    "author": "Author (optional)",
+    "selectFile": "Select Audio File",
+    "pickCover": "Pick Cover Image",
+    "add": "Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "importing": "Importing audiobook...",
+    "playbackSpeed": "Playback Speed",
+    "selectLanguage": "Select Language"
+  },
+  "common": {
+    "delete": "Delete",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close"
+  },
+  "languages": {
+    "en": "English",
+    "pt-BR": "Português (Brasil)"
+  }
+}

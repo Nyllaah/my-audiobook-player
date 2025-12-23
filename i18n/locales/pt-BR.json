@@ -1,0 +1,69 @@
+{
+  "library": {
+    "title": "Biblioteca",
+    "empty": "Nenhum audiolivro ainda",
+    "emptyDescription": "Adicione seu primeiro audiolivro para começar",
+    "addButton": "Adicionar Audiolivro",
+    "tips": {
+      "import": "Toque em + para importar um audiolivro do seu dispositivo",
+      "edit": "Pressione longamente ou toque no menu para editar ou excluir",
+      "play": "Toque em qualquer audiolivro para começar a ouvir"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Excluir"
+    }
+  },
+  "player": {
+    "speed": "Velocidade",
+    "chapters": "Capítulos",
+    "selectPart": "Selecionar Parte",
+    "part": "Parte {{current}} de {{total}}",
+    "sleepTimer": "Timer de Sono",
+    "setSleepTimer": "Definir Timer de Sono",
+    "minutes": "{{count}} min",
+    "cancel": "Cancelar"
+  },
+  "settings": {
+    "title": "Configurações",
+    "playback": "Reprodução",
+    "appearance": "Aparência",
+    "about": "Sobre",
+    "defaultSpeed": "Velocidade Padrão de Reprodução",
+    "skipForward": "Avançar",
+    "skipBackward": "Retroceder",
+    "darkTheme": "Tema Escuro",
+    "language": "Idioma",
+    "appName": "Audiobook Player",
+    "version": "Versão 1.0.0",
+    "description": "Um reprodutor de audiolivros bonito e intuitivo para suas histórias favoritas.",
+    "seconds": "{{count}} segundos"
+  },
+  "modals": {
+    "addAudiobook": "Adicionar Audiolivro",
+    "editAudiobook": "Editar Audiolivro",
+    "enterTitle": "Digite o título do audiolivro",
+    "title": "Título",
+    "author": "Autor (opcional)",
+    "selectFile": "Selecionar Arquivo de Áudio",
+    "pickCover": "Escolher Imagem de Capa",
+    "add": "Adicionar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "loading": "Carregando...",
+    "importing": "Importando audiolivro...",
+    "playbackSpeed": "Velocidade de Reprodução",
+    "selectLanguage": "Selecionar Idioma"
+  },
+  "common": {
+    "delete": "Excluir",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "close": "Fechar"
+  },
+  "languages": {
+    "en": "English",
+    "pt-BR": "Português (Brasil)"
+  }
+}

@@ -1,3 +1,4 @@
+import { useLanguage } from '@/context/LanguageContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import {
 
 export default function SettingsScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const { defaultPlaybackSpeed, skipForwardSeconds, skipBackwardSeconds, setDefaultPlaybackSpeed, setSkipForwardSeconds, setSkipBackwardSeconds } = useSettings();
   
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -21,6 +23,7 @@ export default function SettingsScreen() {
   const [speedModalVisible, setSpeedModalVisible] = useState(false);
   const [forwardModalVisible, setForwardModalVisible] = useState(false);
   const [backwardModalVisible, setBackwardModalVisible] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   
   const playbackSpeeds = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
   const skipOptions = [10, 15, 30, 45, 60];
@@ -98,6 +101,22 @@ export default function SettingsScreen() {
             thumbColor="#FFF"
           />
         </View>
+        
+        {/* Language */}
+        <TouchableOpacity
+          style={styles.settingItem}
+          onPress={() => setLanguageModalVisible(true)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.settingLeft}>
+            <Ionicons name="language" size={24} color={colors.primary} />
+            <Text style={styles.settingTitle}>Language</Text>
+          </View>
+          <View style={styles.settingRight}>
+            <Text style={styles.settingValue}>{t(`languages.${language}`)}</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -233,6 +252,65 @@ export default function SettingsScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      
+      {/* Language Modal */}
+      <Modal
+        visible={languageModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setLanguageModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('modals.selectLanguage')}</Text>
+            <View style={styles.optionsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.optionButton,
+                  language === 'en' && styles.optionButtonActive,
+                ]}
+                onPress={() => {
+                  setLanguage('en');
+                  setLanguageModalVisible(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    language === 'en' && styles.optionTextActive,
+                  ]}
+                >
+                  {t('languages.en')}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.optionButton,
+                  language === 'pt-BR' && styles.optionButtonActive,
+                ]}
+                onPress={() => {
+                  setLanguage('pt-BR');
+                  setLanguageModalVisible(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    language === 'pt-BR' && styles.optionTextActive,
+                  ]}
+                >
+                  {t('languages.pt-BR')}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableOpacity>
