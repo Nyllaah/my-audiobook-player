@@ -1,41 +1,207 @@
-# Welcome to your Expo app 👋
+# 📚 Audiobook Player
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A beautiful, feature-rich audiobook player built with React Native and Expo. Enjoy your favorite audiobooks with an intuitive iOS-inspired interface, complete with dark mode support and customizable playback settings.
 
-## Get started
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Expo](https://img.shields.io/badge/Expo-SDK%2052-000020.svg?logo=expo)
+![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB.svg?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg?logo=typescript)
 
-1. Install dependencies
+## ✨ Features
 
+### 🎵 Core Playback
+- **Full playback controls** - Play, pause, skip forward/backward
+- **Adjustable playback speed** - 0.75x to 2.0x
+- **Progress tracking** - Auto-save every 10 seconds
+- **Resume functionality** - Pick up right where you left off
+- **Multi-part support** - Handle audiobooks with multiple parts/chapters
+- **Background playback** - Continue listening while using other apps
+
+### 📖 Library Management
+- **Import audiobooks** - From device storage or cloud services
+- **Custom cover images** - Upload your own artwork
+- **Edit metadata** - Update titles, authors, and covers
+- **Beautiful library view** - Grid layout with cover thumbnails
+- **Quick actions** - Edit or delete with action menu
+
+### ⚙️ Customization
+- **Dark theme** - Full dark mode support
+- **Configurable skip intervals** - 10s, 15s, 30s, 45s, or 60s
+- **Default playback speed** - Set your preferred speed
+- **Persistent settings** - All preferences saved automatically
+
+### 🎨 User Interface
+- **iOS-inspired design** - Clean, modern, and intuitive
+- **MiniPlayer** - Quick access from any screen
+- **Tab navigation** - Easy switching between Library and Settings
+- **Smooth animations** - Polished transitions throughout
+- **Responsive layouts** - Optimized for all screen sizes
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js >= 20.19.4
+- Yarn (recommended) or npm
+- Expo Go app (for testing on device)
+
+### Installation
+
+1. **Clone the repository**
    ```bash
-   npm install
+   git clone <repository-url>
+   cd my-audiobook-app
    ```
 
-2. Start the app
-
+2. **Install dependencies**
    ```bash
-   npx expo start
+   yarn install
    ```
 
-In the output, you'll find options to open the app in a
+3. **Start the development server**
+   ```bash
+   yarn start
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4. **Run on your device**
+   - Scan the QR code with Expo Go (Android)
+   - Scan the QR code with Camera app (iOS)
+   - Or press `a` for Android emulator, `i` for iOS simulator
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### WSL Users
+If you're using WSL, start with tunnel mode:
 ```bash
-npm run reset-project
+yarn start --tunnel
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📁 Project Structure
 
-## Learn more
+```
+my-audiobook-app/
+├── app/                    # Expo Router navigation
+│   ├── (tabs)/            # Tab navigation layout
+│   └── _layout.tsx        # Root layout with providers
+├── components/            # Reusable components
+│   └── MiniPlayer.tsx     # Bottom mini player
+├── context/               # React Context providers
+│   ├── AudiobookContext.tsx   # Audiobook state management
+│   ├── SettingsContext.tsx    # App settings
+│   └── ThemeContext.tsx       # Theme management
+├── screens/               # Main app screens
+│   ├── LibraryScreen.tsx  # Audiobook library
+│   ├── PlayerScreen.tsx   # Full player view
+│   └── SettingsScreen.tsx # App settings
+├── services/              # Business logic
+│   ├── audioPlayerService.ts  # Audio playback (expo-av)
+│   └── storageService.ts      # AsyncStorage wrapper
+├── types/                 # TypeScript definitions
+│   └── audiobook.ts       # Audiobook interfaces
+└── constants/             # App constants
+    └── colors.ts          # Theme colors
+```
+
+## 🛠️ Tech Stack
+
+- **[React Native](https://reactnative.dev/)** - Mobile framework
+- **[Expo](https://expo.dev/)** - Development platform
+- **[TypeScript](https://www.typescriptlang.org/)** - Type safety
+- **[Expo Router](https://docs.expo.dev/router/introduction/)** - File-based navigation
+- **[expo-av](https://docs.expo.dev/versions/latest/sdk/av/)** - Audio playback
+- **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)** - Data persistence
+- **[expo-document-picker](https://docs.expo.dev/versions/latest/sdk/document-picker/)** - File selection
+- **[expo-image-picker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)** - Image selection
+
+## 📱 Usage
+
+### Adding an Audiobook
+1. Tap the **+** button in the Library
+2. Select an audio file from your device
+3. Enter the title and author (optional)
+4. Add a cover image (optional)
+5. Tap **Add** to save
+
+### Playing an Audiobook
+1. Tap any audiobook in the Library
+2. Use the player controls:
+   - **Play/Pause** - Center button
+   - **Skip backward** - Left button (default: 15s)
+   - **Skip forward** - Right button (default: 30s)
+   - **Speed** - Tap speed button to adjust
+   - **Parts** - Tap part selector for multi-part books
+
+### Customizing Settings
+1. Go to the **Settings** tab
+2. Tap any setting to change:
+   - **Default Playback Speed** - Choose from 0.75x to 2.0x
+   - **Skip Forward** - Set interval (10s-60s)
+   - **Skip Backward** - Set interval (10s-60s)
+   - **Dark Theme** - Toggle dark mode
+
+## 🎨 Theming
+
+The app supports both light and dark themes. Toggle between them in Settings → Appearance → Dark Theme.
+
+**Light Theme:**
+- Clean, bright interface
+- High contrast for readability
+- iOS-inspired colors
+
+**Dark Theme:**
+- Easy on the eyes
+- OLED-friendly dark grays
+- Reduced eye strain
+
+## 🧪 Testing
+
+Run tests with vitest:
+```bash
+yarn test
+```
+
+## 📦 Building for Production
+
+### Using EAS Build
+
+1. **Install EAS CLI**
+   ```bash
+   yarn global add eas-cli
+   ```
+
+2. **Configure EAS**
+   ```bash
+   eas build:configure
+   ```
+
+3. **Build for iOS**
+   ```bash
+   eas build --platform ios
+   ```
+
+4. **Build for Android**
+   ```bash
+   eas build --platform android
+   ```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- Built with [Expo](https://expo.dev/)
+- Icons from [Ionicons](https://ionic.io/ionicons)
+- Audio playback powered by [expo-av](https://docs.expo.dev/versions/latest/sdk/av/)
+
+## 📞 Support
+
+If you encounter any issues or have questions, please open an issue on GitHub.
+
+---
+
+Made with ❤️ using React Native and Expo
 
 To learn more about developing your project with Expo, look at the following resources:
 
