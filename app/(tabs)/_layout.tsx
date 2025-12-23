@@ -36,12 +36,8 @@ export default function TabLayout() {
           name="explore"
           options={{
             title: 'Settings',
-            headerShown: true,
+            headerShown: false,
             tabBarIcon: ({ color }) => <Ionicons name="settings" size={24} color={color} />,
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerTintColor: colors.text,
           }}
         />
       </Tabs>
