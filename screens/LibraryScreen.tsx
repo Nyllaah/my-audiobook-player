@@ -1,4 +1,6 @@
 import { useAudiobook } from '@/context/AudiobookContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { useTheme } from '@/context/ThemeContext';
 import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
 import { detectAudiobookTitle, sortAudioFiles } from '@/utils/audiobookParser';
@@ -6,10 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
-import { useLanguage } from '@/context/LanguageContext';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -34,6 +34,7 @@ export default function LibraryScreen() {
   const [isAdding, setIsAdding] = useState(false);
   const [actionMenuVisible, setActionMenuVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Audiobook | null>(null);
+  const menuPositionRef = useRef({ x: 0, y: 0 });
 
   const handleConfirmTitle = async () => {
     if (!pendingAudiobook) return;
@@ -194,12 +195,12 @@ export default function LibraryScreen() {
 
   const handleDeleteBook = (book: Audiobook) => {
     Alert.alert(
-      'Delete Audiobook',
-      `Are you sure you want to delete "${book.title}"?`,
+      t('library.deleteConfirm.title'),
+      t('library.deleteConfirm.message', { title: book.title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('modals.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('library.actions.delete'),
           style: 'destructive',
           onPress: () => removeAudiobook(book.id),
         },
@@ -207,15 +208,10 @@ export default function LibraryScreen() {
     );
   };
 
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return '';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  };
-
   const renderItem = ({ item }: { item: Audiobook }) => {
     if (!item || !item.id) return null;
+    
+    let moreButtonRef: any = null;
 
     const handlePlayBook = async () => {
       await refreshLibrary();
@@ -253,23 +249,22 @@ export default function LibraryScreen() {
               {item.author}
             </Text>
           ) : null}
-          <View style={styles.metaRow}>
-            {item.parts && item.parts.length > 1 ? (
+          {item.parts && item.parts.length > 1 ? (
+            <View style={styles.metaRow}>
               <Text style={styles.partCount}>
                 {t('library.parts', { count: item.parts.length })}
               </Text>
-            ) : null}
-            {item.duration ? (
-              <Text style={styles.duration}>
-                {formatDuration(item.duration)}
-              </Text>
-            ) : null}
-          </View>
+            </View>
+          ) : null}
         </View>
         <TouchableOpacity
+          ref={(ref) => { moreButtonRef = ref; }}
           style={styles.moreButton}
           onPress={(e) => {
             e.stopPropagation();
+            moreButtonRef?.measureInWindow((x: number, y: number, width: number, height: number) => {
+              menuPositionRef.current = { x: x + width, y: y + height / 2 };
+            });
             setSelectedBook(item);
             setActionMenuVisible(true);
           }}
@@ -324,12 +319,12 @@ export default function LibraryScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Audiobook Title</Text>
+            <Text style={styles.modalTitle}>{t('modals.editAudiobookTitle')}</Text>
             
             {pendingAudiobook && (
               <>
                 <Text style={styles.modalSubtitle}>
-                  {pendingAudiobook.sortedParts.length} files selected
+                  {t('modals.filesSelected', { count: pendingAudiobook.sortedParts.length })}
                 </Text>
                 
                 <View style={styles.filePreview}>
@@ -340,7 +335,7 @@ export default function LibraryScreen() {
                   ))}
                   {pendingAudiobook.sortedParts.length > 3 && (
                     <Text style={styles.fileName}>
-                      ...and {pendingAudiobook.sortedParts.length - 3} more
+                      {t('modals.andMore', { count: pendingAudiobook.sortedParts.length - 3 })}
                     </Text>
                   )}
                 </View>
@@ -349,7 +344,7 @@ export default function LibraryScreen() {
                   style={styles.titleInput}
                   value={editableTitle}
                   onChangeText={setEditableTitle}
-                  placeholder="Audiobook title"
+                  placeholder={t('modals.enterTitle')}
                   autoFocus
                   selectTextOnFocus
                 />
@@ -359,13 +354,13 @@ export default function LibraryScreen() {
                     style={[styles.modalButton, styles.cancelButton]}
                     onPress={handleCancelTitle}
                   >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={styles.cancelButtonText}>{t('modals.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.confirmButton]}
                     onPress={handleConfirmTitle}
                   >
-                    <Text style={styles.confirmButtonText}>Add</Text>
+                    <Text style={styles.confirmButtonText}>{t('modals.add')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -383,9 +378,9 @@ export default function LibraryScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Audiobook</Text>
+            <Text style={styles.modalTitle}>{t('modals.editAudiobook')}</Text>
             
-            <Text style={styles.inputLabel}>Cover Image</Text>
+            <Text style={styles.inputLabel}>{t('modals.pickCover')}</Text>
             <View style={styles.coverSection}>
               {editCoverUri ? (
                 <View style={styles.coverPreview}>
@@ -400,7 +395,7 @@ export default function LibraryScreen() {
               ) : (
                 <View style={styles.noCover}>
                   <Ionicons name="image-outline" size={48} color="#999" />
-                  <Text style={styles.noCoverText}>No cover image</Text>
+                  <Text style={styles.noCoverText}>{t('modals.pickCover')}</Text>
                 </View>
               )}
               <TouchableOpacity
@@ -409,26 +404,26 @@ export default function LibraryScreen() {
               >
                 <Ionicons name="images-outline" size={20} color="#007AFF" />
                 <Text style={styles.pickCoverText}>
-                  {editCoverUri ? 'Change Cover' : 'Add Cover'}
+                  {t('modals.pickCover')}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Title</Text>
+            <Text style={styles.inputLabel}>{t('modals.title')}</Text>
             <TextInput
               style={styles.titleInput}
               value={editTitle}
               onChangeText={setEditTitle}
-              placeholder="Audiobook title"
+              placeholder={t('modals.enterTitle')}
               autoCapitalize="words"
             />
 
-            <Text style={styles.inputLabel}>Author (Optional)</Text>
+            <Text style={styles.inputLabel}>{t('modals.author')}</Text>
             <TextInput
               style={styles.titleInput}
               value={editAuthor}
               onChangeText={setEditAuthor}
-              placeholder="Author name"
+              placeholder={t('modals.author')}
               autoCapitalize="words"
             />
 
@@ -437,13 +432,13 @@ export default function LibraryScreen() {
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={handleCancelEdit}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t('modals.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
                 onPress={handleSaveEdit}
               >
-                <Text style={styles.confirmButtonText}>Save</Text>
+                <Text style={styles.confirmButtonText}>{t('modals.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -462,7 +457,7 @@ export default function LibraryScreen() {
           activeOpacity={1}
           onPress={() => setActionMenuVisible(false)}
         >
-          <View style={styles.actionMenuContainer}>
+          <View style={[styles.actionMenuContainer, { position: 'absolute', top: menuPositionRef.current.y - 50, left: menuPositionRef.current.x - 150 }]}>
             <TouchableOpacity
               style={styles.actionMenuItem}
               onPress={() => {
@@ -471,7 +466,7 @@ export default function LibraryScreen() {
               }}
             >
               <Ionicons name="create-outline" size={22} color="#007AFF" />
-              <Text style={styles.actionMenuText}>Edit</Text>
+              <Text style={styles.actionMenuText}>{t('library.actions.edit')}</Text>
             </TouchableOpacity>
             <View style={styles.actionMenuDivider} />
             <TouchableOpacity
@@ -482,7 +477,7 @@ export default function LibraryScreen() {
               }}
             >
               <Ionicons name="trash-outline" size={22} color="#FF3B30" />
-              <Text style={[styles.actionMenuText, { color: '#FF3B30' }]}>Delete</Text>
+              <Text style={[styles.actionMenuText, { color: '#FF3B30' }]}>{t('library.actions.delete')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -625,7 +620,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   actionMenuContainer: {
     backgroundColor: colors.backgroundCard,
     borderRadius: 12,
-    minWidth: 200,
     overflow: 'hidden',
   },
   actionMenuItem: {
@@ -680,7 +674,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text,
     marginBottom: 8,
   },
   coverSection: {
@@ -711,12 +705,14 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 12,    
   },
   noCoverText: {
     fontSize: 12,
     color: '#999',
     marginTop: 8,
+    textAlign: 'center',
+    justifyContent: 'center',
   },
   pickCoverButton: {
     flexDirection: 'row',
@@ -759,7 +755,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: '#007AFF',
   },
   cancelButtonText: {
-    color: '#000',
+    color: colors.textLight,
     fontSize: 16,
     fontWeight: '600',
   },

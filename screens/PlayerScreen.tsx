@@ -281,7 +281,7 @@ export default function PlayerScreen() {
             <View style={styles.chapterHeader}>
               <Text style={styles.chapterModalTitle}>{t('player.selectPart')}</Text>
               <TouchableOpacity onPress={() => setShowChapters(false)}>
-                <Ionicons name="close" size={28} color="#000" />
+                <Ionicons name="close" size={28} color={colors.text} />
               </TouchableOpacity>
             </View>
             
@@ -483,7 +483,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
