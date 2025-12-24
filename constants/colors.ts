@@ -3,10 +3,13 @@
  * Centralized color definitions for easy maintenance and consistency
  */
 
+import { Platform } from 'react-native';
+
 export const LightColors = {
   // Primary colors
-  primary: '#007AFF',
-  primaryDark: '#0051D5',
+  primaryOrange: '#ff683b',
+  primaryVanilla: '#ffe7c2',
+  primaryBlue: '#002b64',
   
   // Text colors
   text: '#000',
@@ -17,7 +20,6 @@ export const LightColors = {
   // Background colors
   background: '#F2F2F7',
   backgroundLight: '#FFF',
-  backgroundCard: '#FFF',
   
   // UI element colors
   border: '#E5E5EA',
@@ -25,15 +27,9 @@ export const LightColors = {
   placeholder: '#C7C7CC',
   
   // Accent colors
-  blue: '#007AFF',
-  blueLight: '#E3F2FD',
-  blueDark: '#1976D2',
   red: '#FF3B30',
   green: '#34C759',
-  
-  // Player specific
-  artworkBackground: '#E5F1FF',
-  progressBar: '#007AFF',
+  white: '#FFF',
   
   // Shadows
   shadow: '#000',
@@ -41,8 +37,9 @@ export const LightColors = {
 
 export const DarkColors = {
   // Primary colors
-  primary: '#0A84FF',
-  primaryDark: '#0051D5',
+  primaryOrange: '#ff683b',
+  primaryVanilla: '#ffe7c2',
+  primaryBlue: '#002b64',
   
   // Text colors
   text: '#FFF',
@@ -53,7 +50,6 @@ export const DarkColors = {
   // Background colors
   background: '#1C1C1E',
   backgroundLight: '#2C2C2E',
-  backgroundCard: '#3A3A3C',
   
   // UI element colors
   border: '#38383A',
@@ -61,15 +57,9 @@ export const DarkColors = {
   placeholder: '#48484A',
   
   // Accent colors
-  blue: '#0A84FF',
-  blueLight: '#1E3A5F',
-  blueDark: '#64A9FF',
   red: '#FF453A',
   green: '#32D74B',
-  
-  // Player specific
-  artworkBackground: '#1E3A5F',
-  progressBar: '#0A84FF',
+  white: '#FFF',
   
   // Shadows
   shadow: '#000',
@@ -77,3 +67,29 @@ export const DarkColors = {
 
 export type ColorScheme = typeof LightColors;
 export type ColorKey = keyof ColorScheme;
+
+// Font definitions for different platforms
+export const Fonts = Platform.select({
+  ios: {
+    /** iOS `UIFontDescriptorSystemDesignDefault` */
+    sans: 'system-ui',
+    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    serif: 'ui-serif',
+    /** iOS `UIFontDescriptorSystemDesignRounded` */
+    rounded: 'ui-rounded',
+    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    mono: 'ui-monospace',
+  },
+  default: {
+    sans: 'normal',
+    serif: 'serif',
+    rounded: 'normal',
+    mono: 'monospace',
+  },
+  web: {
+    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    serif: "Georgia, 'Times New Roman', serif",
+    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
+    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+  },
+});

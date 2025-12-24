@@ -105,7 +105,6 @@ export default function LibraryScreen() {
 
     await refreshLibrary();
     
-    // Update currentBook if we're editing the currently playing book
     if (currentBook?.id === editingBook.id) {
       const books = await storageService.getAudiobooks();
       const updatedBook = books.find(b => b.id === editingBook.id);
@@ -280,13 +279,13 @@ export default function LibraryScreen() {
     <View style={styles.container}>
       {/* Custom Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('library.title')}</Text>
+        <Image source={require('@/assets/images/narria-logo.png')} style={styles.logo} />
         <TouchableOpacity
           style={styles.headerButton}
           onPress={pickAudioFiles}
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={24} color="#007AFF" />
+          <Ionicons name="add" size={24} color={colors.primaryOrange} />
         </TouchableOpacity>
       </View>
 
@@ -296,7 +295,7 @@ export default function LibraryScreen() {
           <Text style={styles.emptyTitle}>{t('library.empty')}</Text>
           <Text style={styles.subtitle}>{t('library.emptyDescription')}</Text>
           <View style={styles.tipContainer}>
-            <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
+            <Ionicons name="information-circle-outline" size={16} color={colors.primaryOrange} />
             <Text style={styles.tipText}>
               {t('library.tips.import')}
             </Text>
@@ -389,12 +388,12 @@ export default function LibraryScreen() {
                     style={styles.removeCoverButton}
                     onPress={handleRemoveCover}
                   >
-                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                    <Ionicons name="close-circle" size={24} color={colors.primaryOrange} />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View style={styles.noCover}>
-                  <Ionicons name="image-outline" size={48} color="#999" />
+                  <Ionicons name="image-outline" size={48} color={colors.textTertiary} />
                   <Text style={styles.noCoverText}>{t('modals.pickCover')}</Text>
                 </View>
               )}
@@ -402,7 +401,7 @@ export default function LibraryScreen() {
                 style={styles.pickCoverButton}
                 onPress={handlePickCover}
               >
-                <Ionicons name="images-outline" size={20} color="#007AFF" />
+                <Ionicons name="images-outline" size={20} color={colors.primaryOrange} />
                 <Text style={styles.pickCoverText}>
                   {t('modals.pickCover')}
                 </Text>
@@ -465,7 +464,7 @@ export default function LibraryScreen() {
                 if (selectedBook) handleEditBook(selectedBook);
               }}
             >
-              <Ionicons name="create-outline" size={22} color="#007AFF" />
+              <Ionicons name="create-outline" size={22} color={colors.primaryOrange} />
               <Text style={styles.actionMenuText}>{t('library.actions.edit')}</Text>
             </TouchableOpacity>
             <View style={styles.actionMenuDivider} />
@@ -476,8 +475,8 @@ export default function LibraryScreen() {
                 if (selectedBook) handleDeleteBook(selectedBook);
               }}
             >
-              <Ionicons name="trash-outline" size={22} color="#FF3B30" />
-              <Text style={[styles.actionMenuText, { color: '#FF3B30' }]}>{t('library.actions.delete')}</Text>
+              <Ionicons name="trash-outline" size={22} color={colors.primaryOrange} />
+              <Text style={[styles.actionMenuText, { color: colors.red }]}>{t('library.actions.delete')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -491,7 +490,7 @@ export default function LibraryScreen() {
       >
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={colors.primaryOrange} />
             <Text style={styles.loadingText}>Adding audiobook...</Text>
           </View>
         </View>
@@ -501,6 +500,11 @@ export default function LibraryScreen() {
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
+  logo: {
+    width: 110,
+    height: 40,
+    resizeMode: 'contain',
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -538,7 +542,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   tipContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.blueLight,
+    backgroundColor: colors.background,
     padding: 12,
     borderRadius: 8,
     marginHorizontal: 32,
@@ -548,7 +552,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: colors.blueDark,
+    color: colors.text,
     lineHeight: 18,
   },
   empty: {
@@ -559,7 +563,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   item: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 8,
@@ -601,12 +605,8 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   partCount: {
     fontSize: 12,
-    color: '#007AFF',
+    color: colors.primaryOrange,
     fontWeight: '600',
-  },
-  duration: {
-    fontSize: 12,
-    color: '#999',
   },
   moreButton: {
     padding: 8,
@@ -618,7 +618,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   actionMenuContainer: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -643,7 +643,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 12,
     padding: 24,
     width: '85%',
@@ -661,7 +661,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginBottom: 16,
   },
   filePreview: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
@@ -689,13 +689,13 @@ const createStyles = (colors: any) => StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   removeCoverButton: {
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#FFF',
+    backgroundColor: colors.backgroundLight,
     borderRadius: 12,
   },
   noCover: {
@@ -726,7 +726,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   pickCoverText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: colors.primaryOrange,
   },
   titleInput: {
     borderWidth: 1,
@@ -749,10 +749,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   confirmButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primaryOrange,
   },
   cancelButtonText: {
     color: colors.textLight,
@@ -760,7 +760,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontWeight: '600',
   },
   confirmButtonText: {
-    color: '#FFF',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -771,7 +771,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   loadingContainer: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',

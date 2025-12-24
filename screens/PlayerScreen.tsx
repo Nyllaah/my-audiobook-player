@@ -223,7 +223,7 @@ export default function PlayerScreen() {
           style={styles.controlButton}
           onPress={skipBackward}
         >
-          <Ionicons name="play-back" size={32} color="#007AFF" />
+          <Ionicons name="play-back" size={32} color={colors.primaryOrange} />
           <Text style={styles.skipText}>15s</Text>
         </TouchableOpacity>
 
@@ -234,7 +234,7 @@ export default function PlayerScreen() {
           <Ionicons
             name={playbackState.isPlaying ? 'pause' : 'play'}
             size={32}
-            color="#FFF"
+            color={colors.white}
           />
         </TouchableOpacity>
 
@@ -242,7 +242,7 @@ export default function PlayerScreen() {
           style={styles.controlButton}
           onPress={skipForward}
         >
-          <Ionicons name="play-forward" size={32} color="#007AFF" />
+          <Ionicons name="play-forward" size={32} color={colors.primaryOrange} />
           <Text style={styles.skipText}>30s</Text>
         </TouchableOpacity>
       </View>
@@ -253,7 +253,7 @@ export default function PlayerScreen() {
           style={styles.secondaryButton}
           onPress={cyclePlaybackRate}
         >
-          <Ionicons name="speedometer-outline" size={20} color="#007AFF" />
+          <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
           <Text style={styles.secondaryButtonText}>{playbackState.playbackRate}x</Text>
         </TouchableOpacity>
 
@@ -262,7 +262,7 @@ export default function PlayerScreen() {
           onPress={() => sleepTimer ? handleCancelTimer() : setShowTimerDialog(true)}
           onLongPress={sleepTimer ? handleCancelTimer : undefined}
         >
-          <Ionicons name="timer-outline" size={20} color={sleepTimer ? '#FF3B30' : '#007AFF'} />
+          <Ionicons name="timer-outline" size={20} color={sleepTimer ? colors.red : colors.primaryOrange} />
           <Text style={[styles.secondaryButtonText, sleepTimer ? styles.timerActive : null]}>
             {sleepTimer ? `${sleepTimer}m` : 'Timer'}
           </Text>
@@ -302,7 +302,7 @@ export default function PlayerScreen() {
                     </Text>
                   </View>
                   {(currentBook.currentPart || 0) === index && (
-                    <Ionicons name="checkmark" size={24} color="#007AFF" />
+                    <Ionicons name="checkmark" size={24} color={colors.primaryOrange} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -370,7 +370,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.artworkBackground,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
@@ -411,7 +411,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   timeText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textTertiary,
   },
   controlsContainer: {
     flexDirection: 'row',
@@ -427,7 +427,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   skipText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.textTertiary,
   },
   playButton: {
     width: 64,
@@ -456,11 +456,11 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 20,
     minWidth: 100,
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -472,7 +472,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.primary,
   },
   timerActive: {
-    color: '#FF3B30',
+    color: colors.primaryOrange,
   },
   emptyState: {
     flex: 1,
@@ -489,18 +489,18 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textTertiary,
     textAlign: 'center',
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
   },
   backButtonText: {
-    color: '#FFF',
+    color: colors.primaryOrange,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -508,7 +508,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     marginHorizontal: 32,
     padding: 12,
     borderRadius: 8,
@@ -525,7 +525,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   chapterModal: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '70%',
@@ -536,7 +536,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: colors.border,
   },
   chapterModalTitle: {
     fontSize: 20,
@@ -584,7 +584,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   timerDialog: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 16,
     padding: 24,
     width: '80%',

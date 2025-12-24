@@ -45,7 +45,7 @@ export default function SettingsScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.settingLeft}>
-            <Ionicons name="speedometer-outline" size={24} color={colors.primary} />
+            <Ionicons name="speedometer-outline" size={24} color={colors.primaryOrange} />
             <Text style={styles.settingTitle}>{t('settings.defaultSpeed')}</Text>
           </View>
           <View style={styles.settingRight}>
@@ -61,7 +61,7 @@ export default function SettingsScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.settingLeft}>
-            <Ionicons name="play-forward" size={24} color={colors.primary} />
+            <Ionicons name="play-forward" size={24} color={colors.primaryOrange} />
             <Text style={styles.settingTitle}>{t('settings.skipForward')}</Text>
           </View>
           <View style={styles.settingRight}>
@@ -77,7 +77,7 @@ export default function SettingsScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.settingLeft}>
-            <Ionicons name="play-back" size={24} color={colors.primary} />
+            <Ionicons name="play-back" size={24} color={colors.primaryOrange} />
             <Text style={styles.settingTitle}>{t('settings.skipBackward')}</Text>
           </View>
           <View style={styles.settingRight}>
@@ -91,14 +91,14 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>{t('settings.appearance')}</Text>
         <View style={styles.settingItem}>
           <View style={styles.settingLeft}>
-            <Ionicons name="moon-outline" size={24} color={colors.primary} />
+            <Ionicons name="moon-outline" size={24} color={colors.primaryOrange} />
             <Text style={styles.settingTitle}>{t('settings.darkTheme')}</Text>
           </View>
           <Switch
             value={isDark}
             onValueChange={toggleTheme}
-            trackColor={{ false: '#E5E5EA', true: colors.primary }}
-            thumbColor="#FFF"
+            trackColor={{ false: colors.primaryVanilla, true: colors.primaryOrange }}
+            thumbColor={colors.white}
           />
         </View>
         
@@ -109,7 +109,7 @@ export default function SettingsScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.settingLeft}>
-            <Ionicons name="language" size={24} color={colors.primary} />
+            <Ionicons name="language" size={24} color={colors.primaryOrange} />
             <Text style={styles.settingTitle}>{t('settings.language')}</Text>
           </View>
           <View style={styles.settingRight}>
@@ -122,7 +122,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
         <View style={styles.aboutContainer}>
-          <Ionicons name="book" size={60} color={colors.primary} />
+          <Ionicons name="book" size={60} color={colors.primaryOrange} />
           <Text style={styles.appName}>{t('settings.appName')}</Text>
           <Text style={styles.appVersion}>{t('settings.version')}</Text>
           <Text style={styles.appDescription}>
@@ -354,7 +354,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     padding: 16,
     marginBottom: 8,
     borderRadius: 12,
@@ -379,7 +379,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.textTertiary,
   },
   aboutContainer: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',
@@ -409,7 +409,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderRadius: 16,
     padding: 24,
     width: '85%',
@@ -440,8 +440,8 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderColor: 'transparent',
   },
   optionButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.primaryOrange,
+    borderColor: colors.primaryOrange,
   },
   optionText: {
     fontSize: 16,
@@ -450,6 +450,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: 'center',
   },
   optionTextActive: {
-    color: '#FFF',
+    color: colors.textPrimary,
   },
 });

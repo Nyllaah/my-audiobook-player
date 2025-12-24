@@ -3,7 +3,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function MiniPlayer() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function MiniPlayer() {
               style={styles.coverImage}
             />
           ) : (
-            <Ionicons name="book" size={32} color="#007AFF" />
+            <Ionicons name="book" size={32} color={colors.primaryOrange} />
           )}
         </View>
         
@@ -70,7 +70,7 @@ export default function MiniPlayer() {
           <Ionicons
             name={playbackState.isPlaying ? 'pause' : 'play'}
             size={28}
-            color="#007AFF"
+            color={colors.primaryOrange}
           />
         </TouchableOpacity>
       </View>
@@ -84,10 +84,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     bottom: 65,
     left: 0,
     right: 0,
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundLight,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
