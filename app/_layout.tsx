@@ -1,6 +1,8 @@
 import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
@@ -9,11 +11,22 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 
+SplashScreen.preventAutoHideAsync();
+
 export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
 export default function RootLayout() {
+  useEffect(() => {
+    const hideSplash = async () => {
+      await SplashScreen.hideAsync();
+    };
+
+    const timer = setTimeout(hideSplash, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <LanguageProvider>
       <ThemeProvider>
@@ -27,7 +40,6 @@ export default function RootLayout() {
                   options={{ 
                     presentation: Platform.OS === 'android' ? 'transparentModal' : 'modal',
                     headerShown: false,
-                    animationEnabled: Platform.OS !== 'android',
                   }} 
                 />
               </Stack>
