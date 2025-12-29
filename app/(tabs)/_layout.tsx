@@ -1,11 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
 import MiniPlayer from '@/components/MiniPlayer';
-import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
   const { colors } = useTheme();
@@ -16,14 +16,12 @@ export default function TabLayout() {
       <Tabs
         initialRouteName="index"
         screenOptions={{
-          tabBarActiveTintColor: colors.primary,
+          tabBarActiveTintColor: colors.primaryOrange,
           tabBarInactiveTintColor: colors.textTertiary,
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarStyle: {
-            backgroundColor: colors.backgroundLight,
-            borderTopColor: colors.border,
-            borderTopWidth: 1,
+            backgroundColor: colors.primaryBlue,
           },
         }}>
         <Tabs.Screen

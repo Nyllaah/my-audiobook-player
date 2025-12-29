@@ -1,3 +1,4 @@
+import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -129,7 +130,7 @@ export default function PlayerScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.emptyState}>
-          <Ionicons name="musical-notes-outline" size={80} color="#C7C7CC" />
+          <Ionicons name="musical-notes-outline" size={80} color={colors.textTertiary} />
           <Text style={styles.emptyTitle}>No Audiobook Playing</Text>
           <Text style={styles.emptySubtitle}>
             Select an audiobook from your library to start listening
@@ -157,7 +158,7 @@ export default function PlayerScreen() {
           router.back();
         }}
       >
-        <Ionicons name="chevron-down" size={32} color="#007AFF" />
+        <Ionicons name="chevron-down" size={32} color={colors.primaryOrange} />
       </TouchableOpacity>
 
       <View style={styles.artworkContainer}>
@@ -169,7 +170,7 @@ export default function PlayerScreen() {
               resizeMode="cover"
             />
           ) : (
-            <Ionicons name="book" size={120} color="#007AFF" />
+            <Ionicons name="book" size={120} color={colors.primaryOrange} />
           )}
         </View>
       </View>
@@ -191,11 +192,11 @@ export default function PlayerScreen() {
           style={styles.chapterButton}
           onPress={() => setShowChapters(true)}
         >
-          <Ionicons name="list" size={20} color="#007AFF" />
+          <Ionicons name="list" size={20} color={colors.primaryOrange} />
           <Text style={styles.chapterButtonText}>
             {t('player.part', { current: (currentBook.currentPart || 0) + 1, total: currentBook.parts.length })}
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+          <Ionicons name="chevron-forward" size={20} color={colors.primaryOrange} />
         </TouchableOpacity>
       )}
 
@@ -205,9 +206,9 @@ export default function PlayerScreen() {
           value={currentPosition}
           minimumValue={0}
           maximumValue={duration}
-          minimumTrackTintColor="#007AFF"
-          maximumTrackTintColor="#C7C7CC"
-          thumbTintColor="#007AFF"
+          minimumTrackTintColor={colors.primaryOrange}
+          maximumTrackTintColor={colors.textTertiary}
+          thumbTintColor={colors.primaryOrange}
           onSlidingStart={handleSeekStart}
           onValueChange={handleSeekChange}
           onSlidingComplete={handleSeekComplete}
@@ -348,7 +349,7 @@ export default function PlayerScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -367,7 +368,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 20,
-    backgroundColor: colors.artworkBackground,
+    backgroundColor: colors.backgroundLight,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: colors.shadow,
@@ -433,10 +434,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryOrange,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.primary,
+    shadowColor: colors.primaryOrange,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -469,7 +470,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   secondaryButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.primaryOrange,
   },
   timerActive: {
     color: colors.primaryOrange,
@@ -494,7 +495,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryOrange,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -516,7 +517,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   chapterButtonText: {
     fontSize: 14,
-    color: colors.primary,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -569,7 +570,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   chapterNumber: {
     fontSize: 12,
-    color: colors.primary,
+    color: colors.primaryOrange,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -599,11 +600,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   timerOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
     marginBottom: 20,
   },
   timerOption: {
-    flex: 1,
     minWidth: '30%',
     backgroundColor: colors.background,
     paddingVertical: 16,
@@ -614,7 +614,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   timerOptionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.primaryOrange,
   },
   timerCancelButton: {
     backgroundColor: colors.background,

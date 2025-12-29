@@ -1,3 +1,4 @@
+import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -5,6 +6,7 @@ import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
 import { detectAudiobookTitle, sortAudioFiles } from '@/utils/audiobookParser';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -21,6 +23,7 @@ export default function LibraryScreen() {
   
   const [titleDialogVisible, setTitleDialogVisible] = useState(false);
   const [editableTitle, setEditableTitle] = useState('');
+  const [pendingCoverUri, setPendingCoverUri] = useState<string | null>(null);
   const [pendingAudiobook, setPendingAudiobook] = useState<{
     sortedParts: any[];
     detectedTitle: string;
@@ -36,6 +39,48 @@ export default function LibraryScreen() {
   const [selectedBook, setSelectedBook] = useState<Audiobook | null>(null);
   const menuPositionRef = useRef({ x: 0, y: 0 });
 
+  const IMPORT_INFO_SEEN_KEY = '@import_info_seen';
+
+  const hasSeenImportInfo = async (): Promise<boolean> => {
+    try {
+      const value = await AsyncStorage.getItem(IMPORT_INFO_SEEN_KEY);
+      return value === 'true';
+    } catch (error) {
+      console.error('Failed to check import info status:', error);
+      return false;
+    }
+  };
+
+  const markImportInfoAsSeen = async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(IMPORT_INFO_SEEN_KEY, 'true');
+    } catch (error) {
+      console.error('Failed to mark import info as seen:', error);
+    }
+  };
+
+  const showImportInfoDialog = (onContinue: () => void): void => {
+    Alert.alert(
+      t('modals.importInfo.title'),
+      t('modals.importInfo.message'),
+      [
+        {
+          text: t('modals.cancel'),
+          style: 'cancel',
+          onPress: () => {},
+        },
+        {
+          text: t('common.ok'),
+          onPress: async () => {
+            await markImportInfoAsSeen();
+            onContinue();
+          },
+        },
+      ],
+      { cancelable: true, onDismiss: () => {} }
+    );
+  };
+
   const handleConfirmTitle = async () => {
     if (!pendingAudiobook) return;
 
@@ -49,17 +94,50 @@ export default function LibraryScreen() {
       addedDate: Date.now(),
       currentPosition: 0,
       currentPart: 0,
+      artwork: pendingCoverUri || undefined,
     };
     
     await addAudiobook(audiobook);
     setTitleDialogVisible(false);
     setPendingAudiobook(null);
+    setPendingCoverUri(null);
     Alert.alert('Success!', `Added "${finalTitle}" with ${pendingAudiobook.sortedParts.length} parts`);
   };
 
   const handleCancelTitle = () => {
     setTitleDialogVisible(false);
     setPendingAudiobook(null);
+    setPendingCoverUri(null);
+  };
+
+  const isImageFile = (filename: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    const ext = filename.toLowerCase().match(/\.[^/.]+$/)?.[0];
+    return ext ? imageExtensions.includes(ext) : false;
+  };
+
+  const handlePickPendingCover = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access photos is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPendingCoverUri(result.assets[0].uri);
+    }
+  };
+
+  const handleRemovePendingCover = () => {
+    setPendingCoverUri(null);
   };
 
   const handleEditBook = (book: Audiobook) => {
@@ -128,10 +206,10 @@ export default function LibraryScreen() {
     setEditCoverUri(null);
   };
 
-  const pickAudioFiles = async () => {
+  const doPickAudioFiles = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
+        type: '*/*', // Allow all file types to detect images
         copyToCacheDirectory: true,
         multiple: true,
       });
@@ -142,14 +220,34 @@ export default function LibraryScreen() {
 
       if (result.assets && result.assets.length > 0) {
         setIsAdding(true);
-        if (result.assets.length === 1) {
-          const file = result.assets[0];
+        
+        // Separate audio files and image files
+        const allFiles = result.assets.map(asset => ({
+          name: asset.name,
+          uri: asset.uri,
+        }));
+        
+        const audioFiles = allFiles.filter(file => !isImageFile(file.name));
+        const imageFiles = allFiles.filter(file => isImageFile(file.name));
+        
+        // Auto-set first image as cover if found
+        const autoCoverUri = imageFiles.length > 0 ? imageFiles[0].uri : null;
+        
+        if (audioFiles.length === 0) {
+          setIsAdding(false);
+          Alert.alert('Error', 'No audio files selected. Please select at least one audio file.');
+          return;
+        }
+        
+        if (audioFiles.length === 1) {
+          const file = audioFiles[0];
           const audiobook: Audiobook = {
             id: Date.now().toString(),
             title: file.name.replace(/\.[^/.]+$/, ''),
             uri: file.uri,
             addedDate: Date.now(),
             currentPosition: 0,
+            artwork: autoCoverUri || undefined,
           };
           try {
             await addAudiobook(audiobook);
@@ -163,24 +261,32 @@ export default function LibraryScreen() {
           return;
         }
 
-        const files = result.assets.map(asset => ({
-          name: asset.name,
-          uri: asset.uri,
-        }));
-
-        const sortedParts = sortAudioFiles(files);
+        const sortedParts = sortAudioFiles(audioFiles);
         
-        const detectedTitle = detectAudiobookTitle(files);
+        const detectedTitle = detectAudiobookTitle(audioFiles);
 
         setIsAdding(false);
         setPendingAudiobook({ sortedParts, detectedTitle });
         setEditableTitle(detectedTitle);
+        setPendingCoverUri(autoCoverUri);
         setTitleDialogVisible(true);
       }
     } catch (error) {
       setIsAdding(false);
       console.error('Error picking audio files:', error);
       Alert.alert('Error', 'Failed to add audiobook');
+    }
+  };
+
+  const pickAudioFiles = async () => {
+    // Show info dialog if user hasn't seen it yet
+    const hasSeen = await hasSeenImportInfo();
+    if (!hasSeen) {
+      showImportInfoDialog(() => {
+        doPickAudioFiles();
+      });
+    } else {
+      doPickAudioFiles();
     }
   };
 
@@ -235,7 +341,7 @@ export default function LibraryScreen() {
             <Image source={{ uri: item.artwork }} style={styles.coverThumbnail} />
           ) : (
             <View style={styles.coverPlaceholder}>
-              <Ionicons name="book-outline" size={32} color="#007AFF" />
+              <Ionicons name="book-outline" size={32} color={colors.primaryOrange} />
             </View>
           )}
         </View>
@@ -339,6 +445,36 @@ export default function LibraryScreen() {
                   )}
                 </View>
 
+                <Text style={styles.inputLabel}>{t('modals.pickCover')}</Text>
+                <View style={styles.coverSection}>
+                  {pendingCoverUri ? (
+                    <View style={styles.coverPreview}>
+                      <Image source={{ uri: pendingCoverUri }} style={styles.coverImage} />
+                      <TouchableOpacity
+                        style={styles.removeCoverButton}
+                        onPress={handleRemovePendingCover}
+                      >
+                        <Ionicons name="close-circle" size={24} color={colors.primaryOrange} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.noCover}>
+                      <Ionicons name="image-outline" size={48} color={colors.textTertiary} />
+                      <Text style={styles.noCoverText}>{t('modals.pickCover')}</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.pickCoverButton}
+                    onPress={handlePickPendingCover}
+                  >
+                    <Ionicons name="images-outline" size={20} color={colors.primaryOrange} />
+                    <Text style={styles.pickCoverText}>
+                      {t('modals.pickCover')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.inputLabel}>{t('modals.title')}</Text>
                 <TextInput
                   style={styles.titleInput}
                   value={editableTitle}
@@ -499,7 +635,7 @@ export default function LibraryScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSheet.create({
   logo: {
     width: 110,
     height: 40,
@@ -514,9 +650,8 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 45,
-    paddingBottom: 16,
-    backgroundColor: colors.background,
+    paddingTop: 40,
+    backgroundColor: colors.primaryBlue,
   },
   headerTitle: {
     fontSize: 20,
@@ -533,7 +668,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 24,
   },
   emptyIcon: {
@@ -542,7 +677,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   tipContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundLight,
     padding: 12,
     borderRadius: 8,
     marginHorizontal: 32,
@@ -668,7 +803,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   fileName: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   inputLabel: {
@@ -709,7 +844,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   noCoverText: {
     fontSize: 12,
-    color: '#999',
+    color: colors.textLight,
     marginTop: 8,
     textAlign: 'center',
     justifyContent: 'center',

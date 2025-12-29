@@ -43,6 +43,7 @@
     "appName": "Audiobook Player",
     "version": "Versão 1.0.0",
     "description": "Um reprodutor de audiolivros bonito e intuitivo para suas histórias favoritas.",
+    "madeBy": "Feito por nyllaLabs",
     "seconds": "{{count}} segundos"
   },
   "modals": {
@@ -62,14 +63,19 @@
     "playbackSpeed": "Velocidade de Reprodução",
     "selectLanguage": "Selecionar Idioma",
     "filesSelected": "{{count}} arquivos selecionados",
-    "andMore": "...e mais {{count}}"
+    "andMore": "...e mais {{count}}",
+    "importInfo": {
+      "title": "Importar Audiolivro",
+      "message": "Você pode selecionar um ou mais arquivos de áudio de uma vez. Se houver uma imagem entre eles, ela será automaticamente definida como a imagem de capa."
+    }
   },
   "common": {
     "delete": "Excluir",
     "edit": "Editar",
     "cancel": "Cancelar",
     "save": "Salvar",
-    "close": "Fechar"
+    "close": "Fechar",
+    "ok": "OK"
   },
   "languages": {
     "en": "English",

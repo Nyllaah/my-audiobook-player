@@ -1,9 +1,11 @@
+import { DarkColors, LightColors } from '@/constants/colors';
 import { useLanguage } from '@/context/LanguageContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -122,12 +124,16 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
         <View style={styles.aboutContainer}>
-          <Ionicons name="book" size={60} color={colors.primaryOrange} />
+          <Image 
+            source={require('@/assets/images/narria-logo.png')} 
+            style={styles.logo} 
+          />
           <Text style={styles.appName}>{t('settings.appName')}</Text>
           <Text style={styles.appVersion}>{t('settings.version')}</Text>
           <Text style={styles.appDescription}>
             {t('settings.description')}
           </Text>
+          <Text style={styles.madeBy}>{t('settings.madeBy')}</Text>
         </View>
       </View>
       
@@ -319,7 +325,7 @@ export default function SettingsScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -329,17 +335,17 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 45,
     paddingBottom: 16,
-    backgroundColor: colors.background,
+    paddingTop: 40,
+    backgroundColor: colors.primaryBlue,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primaryVanilla,
   },
   section: {
-    marginTop: 24,
+    marginTop: 16,
     paddingHorizontal: 16,
   },
   sectionTitle: {
@@ -379,16 +385,22 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.textTertiary,
   },
   aboutContainer: {
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.primaryBlue,
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',
+    marginBottom: 24,
+  },
+  logo: {
+    width: 150,
+    height: 44,
+    resizeMode: 'contain',
   },
   appName: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
-    marginTop: 16,
+    color: colors.white,
+    marginTop: 8,
   },
   appVersion: {
     fontSize: 14,
@@ -401,6 +413,13 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     lineHeight: 24,
+  },
+  madeBy: {
+    fontSize: 14,
+    color: colors.white,
+    textAlign: 'center',
+    marginTop: 16,
+    opacity: 0.9,
   },
   modalOverlay: {
     flex: 1,
@@ -416,7 +435,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     maxWidth: 400,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 20,
@@ -428,7 +447,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 12,
   },
   optionButton: {
-    flex: 1,
     minWidth: '30%',
     backgroundColor: colors.background,
     paddingVertical: 16,
@@ -450,6 +468,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: 'center',
   },
   optionTextActive: {
-    color: colors.textPrimary,
+    color: colors.white,
   },
 });

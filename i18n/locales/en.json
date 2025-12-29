@@ -43,6 +43,7 @@
     "appName": "Audiobook Player",
     "version": "Version 1.0.0",
     "description": "A beautiful and intuitive audiobook player for your favorite stories.",
+    "madeBy": "Made by nyllaLabs",
     "seconds": "{{count}} seconds"
   },
   "modals": {
@@ -62,14 +63,19 @@
     "playbackSpeed": "Playback Speed",
     "selectLanguage": "Select Language",
     "filesSelected": "{{count}} files selected",
-    "andMore": "...and {{count}} more"
+    "andMore": "...and {{count}} more",
+    "importInfo": {
+      "title": "Import Audiobook",
+      "message": "You can select one or more audio files at once. If there's a picture among them, it will be automatically set as the cover image."
+    }
   },
   "common": {
     "delete": "Delete",
     "edit": "Edit",
     "cancel": "Cancel",
     "save": "Save",
-    "close": "Close"
+    "close": "Close",
+    "ok": "OK"
   },
   "languages": {
     "en": "English",

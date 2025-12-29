@@ -68,7 +68,6 @@ export const DarkColors = {
 export type ColorScheme = typeof LightColors;
 export type ColorKey = keyof ColorScheme;
 
-// Font definitions for different platforms
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */

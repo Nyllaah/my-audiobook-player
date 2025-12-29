@@ -1,6 +1,7 @@
 import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { AudiobookProvider } from '@/context/AudiobookContext';
@@ -21,7 +22,14 @@ export default function RootLayout() {
             <NavigationThemeProvider value={DefaultTheme}>
               <Stack initialRouteName="(tabs)">
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="player" options={{ presentation: 'modal', headerShown: false }} />
+                <Stack.Screen 
+                  name="player" 
+                  options={{ 
+                    presentation: Platform.OS === 'android' ? 'transparentModal' : 'modal',
+                    headerShown: false,
+                    animationEnabled: Platform.OS !== 'android',
+                  }} 
+                />
               </Stack>
               <StatusBar style="auto" />
             </NavigationThemeProvider>
