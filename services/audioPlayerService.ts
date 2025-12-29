@@ -1,5 +1,5 @@
-import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Audiobook } from '@/types/audiobook';
+import { Audio, AVPlaybackStatus } from 'expo-av';
 
 export enum PlayerState {
   None = 'none',
@@ -14,6 +14,7 @@ export class AudioPlayerService {
   private sound: Audio.Sound | null = null;
   private isInitialized = false;
   private currentStatus: AVPlaybackStatus | null = null;
+  private currentAudiobook: Audiobook | null = null;
 
   private constructor() {}
 
@@ -32,6 +33,7 @@ export class AudioPlayerService {
         playsInSilentModeIOS: true,
         staysActiveInBackground: true,
         shouldDuckAndroid: true,
+        allowsRecordingIOS: false,
       });
       this.isInitialized = true;
     } catch (error) {
@@ -41,16 +43,20 @@ export class AudioPlayerService {
 
   async loadAudiobook(audiobook: Audiobook) {
     try {
-      // Unload previous sound
       if (this.sound) {
         await this.sound.unloadAsync();
         this.sound = null;
       }
 
-      // Load new sound
+      this.currentAudiobook = audiobook;
       const { sound, status } = await Audio.Sound.createAsync(
         { uri: audiobook.uri },
-        { shouldPlay: false, positionMillis: (audiobook.currentPosition || 0) * 1000 },
+        { 
+          shouldPlay: false, 
+          positionMillis: (audiobook.currentPosition || 0) * 1000,
+          isLooping: false,
+          progressUpdateIntervalMillis: 1000,
+        },
         this.onPlaybackStatusUpdate.bind(this)
       );
 
@@ -61,6 +67,7 @@ export class AudioPlayerService {
       throw error;
     }
   }
+
 
   private onPlaybackStatusUpdate(status: AVPlaybackStatus) {
     this.currentStatus = status;

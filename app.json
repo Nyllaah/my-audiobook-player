@@ -15,7 +15,10 @@
         "resizeMode": "contain",
         "backgroundColor": "#002b64"
       },
-      "bundleIdentifier": "com.nyllaah.narriaaudiobookplayer"
+      "bundleIdentifier": "com.nyllaah.narriaaudiobookplayer",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +33,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.nyllaah.narriaaudiobookplayer"
+      "package": "com.nyllaah.narriaaudiobookplayer",
+      "permissions": [
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "output": "static",
