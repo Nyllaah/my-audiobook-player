@@ -134,13 +134,13 @@ export default function LibraryScreen() {
     setPendingCoverUri(null);
   };
 
-  const handleEditBook = (book: Audiobook) => {
+  const handleEditBook = useCallback((book: Audiobook) => {
     setEditingBook(book);
     setEditTitle(book.title || '');
     setEditAuthor(book.author || '');
     setEditCoverUri(book.artwork || null);
     setEditDialogVisible(true);
-  };
+  }, []);
 
   const handlePickCover = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
