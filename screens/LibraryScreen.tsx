@@ -215,7 +215,6 @@ export default function LibraryScreen() {
       if (result.assets && result.assets.length > 0) {
         setIsAdding(true);
         
-        // Separate audio files and image files
         const allFiles = result.assets.map(asset => ({
           name: asset.name,
           uri: asset.uri,
@@ -224,7 +223,6 @@ export default function LibraryScreen() {
         const audioFiles = allFiles.filter(file => !isImageFile(file.name));
         const imageFiles = allFiles.filter(file => isImageFile(file.name));
         
-        // Auto-set first image as cover if found
         const autoCoverUri = imageFiles.length > 0 ? imageFiles[0].uri : null;
         
         if (audioFiles.length === 0) {
