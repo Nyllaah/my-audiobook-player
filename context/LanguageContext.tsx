@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useState, useReducer } from 'react';
 import i18n from '@/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
 
 type Language = 'en' | 'pt-BR';
 
@@ -29,7 +29,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         setLanguageState(savedLanguage);
         i18n.locale = savedLanguage;
       } else {
-        // Use device locale if available
         const deviceLocale = i18n.locale;
         if (deviceLocale.startsWith('pt')) {
           setLanguageState('pt-BR');
@@ -46,7 +45,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     i18n.locale = lang;
     try {
       await AsyncStorage.setItem(LANGUAGE_KEY, lang);
-      // Force re-render to update all translations
       forceUpdate();
     } catch (error) {
       console.error('Failed to save language:', error);

@@ -1,3 +1,4 @@
+import { TIMING } from '@/constants/timing';
 import { audioPlayerService, PlayerState } from '@/services/audioPlayerService';
 import { storageService } from '@/services/storageService';
 import { Audiobook, PlaybackState } from '@/types/audiobook';
@@ -61,11 +62,10 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
         duration,
         currentBook,
       }));
-    }, 500); 
+    }, TIMING.PLAYBACK_STATE_UPDATE_INTERVAL); 
 
     return () => clearInterval(interval);
   }, [currentBook]);
-  // Save progress function
   const saveCurrentProgress = useCallback(async () => {
     if (!currentBook || playbackState.position <= 0) return;
     
@@ -73,7 +73,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       currentPosition: playbackState.position,
     };
     
-    // Save current part for multi-part audiobooks
     if (currentBook.parts && currentBook.parts.length > 1) {
       updates.currentPart = currentBook.currentPart || 0;
     }
@@ -81,13 +80,11 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
     await storageService.updateAudiobook(currentBook.id, updates);
   }, [currentBook, playbackState.position]);
 
-  // Auto-save progress every 10 seconds
   useEffect(() => {
     if (currentBook && playbackState.position > 0) {
-      const interval = setInterval(saveCurrentProgress, 10000); 
+      const interval = setInterval(saveCurrentProgress, TIMING.AUTO_SAVE_INTERVAL); 
       return () => {
         clearInterval(interval);
-        // Save one last time when unmounting
         saveCurrentProgress();
       };
     }
@@ -115,7 +112,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
 
   const playAudiobook = useCallback(async (audiobook: Audiobook) => {
     try {
-      // For multi-part audiobooks, ensure we're using the correct part URI
       let bookToPlay = { ...audiobook };
       if (audiobook.parts && audiobook.parts.length > 1) {
         const partIndex = audiobook.currentPart || 0;
@@ -137,7 +133,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
     const state = await audioPlayerService.getState();
     if (state === PlayerState.Playing) {
       await audioPlayerService.pause();
-      // Save progress when pausing
       await saveCurrentProgress();
     } else {
       await audioPlayerService.play();
@@ -166,7 +161,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       currentPosition: position,
     });
     await refreshLibrary();
-    // Update currentBook if it's the one being updated
     if (currentBook?.id === id) {
       const books = await storageService.getAudiobooks();
       const updatedBook = books.find(b => b.id === id);

@@ -1,23 +1,24 @@
+import { AudiobookListItem } from '@/components/AudiobookListItem';
 import { DarkColors, LightColors } from '@/constants/colors';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
 import { detectAudiobookTitle, sortAudioFiles } from '@/utils/audiobookParser';
+import { isImageFile } from '@/utils/fileUtils';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LibraryScreen() {
-  const router = useRouter();
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const { audiobooks, isLoading, addAudiobook, removeAudiobook, playAudiobook, refreshLibrary, currentBook, setCurrentBook } = useAudiobook();
+  const { audiobooks, isLoading, addAudiobook, removeAudiobook, refreshLibrary, currentBook, setCurrentBook } = useAudiobook();
   
   const styles = useMemo(() => createStyles(colors), [colors]);
   
@@ -39,11 +40,9 @@ export default function LibraryScreen() {
   const [selectedBook, setSelectedBook] = useState<Audiobook | null>(null);
   const menuPositionRef = useRef({ x: 0, y: 0 });
 
-  const IMPORT_INFO_SEEN_KEY = '@import_info_seen';
-
   const hasSeenImportInfo = async (): Promise<boolean> => {
     try {
-      const value = await AsyncStorage.getItem(IMPORT_INFO_SEEN_KEY);
+      const value = await AsyncStorage.getItem(STORAGE_KEYS.IMPORT_INFO_SEEN);
       return value === 'true';
     } catch (error) {
       console.error('Failed to check import info status:', error);
@@ -53,7 +52,7 @@ export default function LibraryScreen() {
 
   const markImportInfoAsSeen = async (): Promise<void> => {
     try {
-      await AsyncStorage.setItem(IMPORT_INFO_SEEN_KEY, 'true');
+      await AsyncStorage.setItem(STORAGE_KEYS.IMPORT_INFO_SEEN, 'true');
     } catch (error) {
       console.error('Failed to mark import info as seen:', error);
     }
@@ -110,11 +109,6 @@ export default function LibraryScreen() {
     setPendingCoverUri(null);
   };
 
-  const isImageFile = (filename: string): boolean => {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-    const ext = filename.toLowerCase().match(/\.[^/.]+$/)?.[0];
-    return ext ? imageExtensions.includes(ext) : false;
-  };
 
   const handlePickPendingCover = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -278,8 +272,43 @@ export default function LibraryScreen() {
     }
   };
 
+  const handleShowMenu = useCallback((book: Audiobook, position: { x: number; y: number }) => {
+    menuPositionRef.current = position;
+    setSelectedBook(book);
+    setActionMenuVisible(true);
+  }, []);
+
+  const handleDeleteBook = useCallback((book: Audiobook) => {
+    Alert.alert(
+      t('library.deleteConfirm.title'),
+      t('library.deleteConfirm.message', { title: book.title }),
+      [
+        { text: t('modals.cancel'), style: 'cancel' },
+        {
+          text: t('library.actions.delete'),
+          style: 'destructive',
+          onPress: () => removeAudiobook(book.id),
+        },
+      ]
+    );
+  }, [t, removeAudiobook]);
+
+  const renderItem = useCallback(({ item }: { item: Audiobook }) => {
+    if (!item || !item.id) return null;
+    
+    return (
+      <AudiobookListItem
+        item={item}
+        onDelete={handleDeleteBook}
+        onEdit={handleEditBook}
+        onShowMenu={handleShowMenu}
+      />
+    );
+  }, [handleDeleteBook, handleEditBook, handleShowMenu]);
+
+  const keyExtractor = useCallback((item: Audiobook) => item.id, []);
+
   const pickAudioFiles = async () => {
-    // Show info dialog if user hasn't seen it yet
     const hasSeen = await hasSeenImportInfo();
     if (!hasSeen) {
       showImportInfoDialog(() => {
@@ -297,89 +326,6 @@ export default function LibraryScreen() {
       </View>
     );
   }
-
-  const handleDeleteBook = (book: Audiobook) => {
-    Alert.alert(
-      t('library.deleteConfirm.title'),
-      t('library.deleteConfirm.message', { title: book.title }),
-      [
-        { text: t('modals.cancel'), style: 'cancel' },
-        {
-          text: t('library.actions.delete'),
-          style: 'destructive',
-          onPress: () => removeAudiobook(book.id),
-        },
-      ]
-    );
-  };
-
-  const renderItem = ({ item }: { item: Audiobook }) => {
-    if (!item || !item.id) return null;
-    
-    let moreButtonRef: any = null;
-
-    const handlePlayBook = async () => {
-      await refreshLibrary();
-      const updatedBooks = await storageService.getAudiobooks();
-      const updatedBook = updatedBooks.find(b => b.id === item.id);
-      if (updatedBook) {
-        await playAudiobook(updatedBook);
-      } else {
-        await playAudiobook(item);
-      }
-      router.push('/player');
-    };
-
-    return (
-      <TouchableOpacity
-        style={styles.item}
-        onPress={handlePlayBook}
-        activeOpacity={0.7}
-      >
-        <View style={styles.coverContainer}>
-          {item.artwork ? (
-            <Image source={{ uri: item.artwork }} style={styles.coverThumbnail} />
-          ) : (
-            <View style={styles.coverPlaceholder}>
-              <Ionicons name="book-outline" size={32} color={colors.primaryOrange} />
-            </View>
-          )}
-        </View>
-        <View style={styles.bookInfo}>
-          <Text style={styles.itemTitle} numberOfLines={2}>
-            {item.title || 'Unknown Title'}
-          </Text>
-          {item.author ? (
-            <Text style={styles.author} numberOfLines={1}>
-              {item.author}
-            </Text>
-          ) : null}
-          {item.parts && item.parts.length > 1 ? (
-            <View style={styles.metaRow}>
-              <Text style={styles.partCount}>
-                {t('library.parts', { count: item.parts.length })}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <TouchableOpacity
-          ref={(ref) => { moreButtonRef = ref; }}
-          style={styles.moreButton}
-          onPress={(e) => {
-            e.stopPropagation();
-            moreButtonRef?.measureInWindow((x: number, y: number, width: number, height: number) => {
-              menuPositionRef.current = { x: x + width, y: y + height / 2 };
-            });
-            setSelectedBook(item);
-            setActionMenuVisible(true);
-          }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="ellipsis-vertical" size={20} color="#8E8E93" />
-        </TouchableOpacity>
-      </TouchableOpacity>
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -411,7 +357,11 @@ export default function LibraryScreen() {
         <FlatList
           data={audiobooks}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
+          removeClippedSubviews
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={10}
         />
       )}
 

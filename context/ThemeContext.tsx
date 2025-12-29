@@ -1,6 +1,6 @@
+import { DarkColors, LightColors } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { LightColors, DarkColors } from '@/constants/colors';
 
 type Theme = 'light' | 'dark';
 type Colors = typeof LightColors | typeof DarkColors;

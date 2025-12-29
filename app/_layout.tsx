@@ -1,3 +1,4 @@
+import { TIMING } from '@/constants/timing';
 import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -23,7 +24,7 @@ export default function RootLayout() {
       await SplashScreen.hideAsync();
     };
 
-    const timer = setTimeout(hideSplash, 500);
+    const timer = setTimeout(hideSplash, TIMING.SPLASH_SCREEN_HIDE_DELAY);
     return () => clearTimeout(timer);
   }, []);
 

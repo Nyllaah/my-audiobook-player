@@ -2,10 +2,12 @@ import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useSleepTimer } from '@/hooks/useSleepTimer';
+import { formatTime } from '@/utils/timeFormatter';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Image,
   Modal,
@@ -15,6 +17,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0] as const;
 
 export default function PlayerScreen() {
   const router = useRouter();
@@ -37,44 +41,35 @@ export default function PlayerScreen() {
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
   const [showChapters, setShowChapters] = useState(false);
-  const [sleepTimer, setSleepTimer] = useState<number | null>(null);
   const [showTimerDialog, setShowTimerDialog] = useState(false);
-  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const playbackRates = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+  const handleTimerEnd = useCallback(async () => {
+    await togglePlayPause();
+  }, [togglePlayPause]);
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
+  const { sleepTimer, setSleepTimer, cancelTimer } = useSleepTimer(handleTimerEnd);
 
-  const handleSeekStart = () => {
+  const handleSeekStart = useCallback(() => {
     setIsSeeking(true);
     setSeekPosition(playbackState.position);
-  };
+  }, [playbackState.position]);
 
-  const handleSeekChange = (value: number) => {
+  const handleSeekChange = useCallback((value: number) => {
     setSeekPosition(value);
-  };
+  }, []);
 
-  const handleSeekComplete = async (value: number) => {
+  const handleSeekComplete = useCallback(async (value: number) => {
     await seekTo(value);
     setIsSeeking(false);
-  };
+  }, [seekTo]);
 
-  const cyclePlaybackRate = () => {
-    const currentIndex = playbackRates.indexOf(playbackState.playbackRate);
-    const nextIndex = (currentIndex + 1) % playbackRates.length;
-    setPlaybackRate(playbackRates[nextIndex]);
-  };
+  const cyclePlaybackRate = useCallback(() => {
+    const currentIndex = PLAYBACK_RATES.indexOf(playbackState.playbackRate as typeof PLAYBACK_RATES[number]);
+    const nextIndex = (currentIndex + 1) % PLAYBACK_RATES.length;
+    setPlaybackRate(PLAYBACK_RATES[nextIndex]);
+  }, [playbackState.playbackRate, setPlaybackRate]);
 
-  const handleSelectChapter = async (partIndex: number) => {
+  const handleSelectChapter = useCallback(async (partIndex: number) => {
     if (!currentBook || !currentBook.parts) return;
     
     const updatedBook = {
@@ -86,45 +81,16 @@ export default function PlayerScreen() {
     
     await playAudiobook(updatedBook);
     setShowChapters(false);
-  };
+  }, [currentBook, playAudiobook]);
 
-  const handleSetTimer = (minutes: number) => {
+  const handleSetTimer = useCallback((minutes: number) => {
     setSleepTimer(minutes);
     setShowTimerDialog(false);
-  };
+  }, [setSleepTimer]);
 
-  const handleCancelTimer = () => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-    setSleepTimer(null);
-  };
-
-  useEffect(() => {
-    if (sleepTimer !== null && sleepTimer > 0) {
-      timerIntervalRef.current = setInterval(() => {
-        setSleepTimer((prev) => {
-          if (prev === null || prev <= 1) {
-            togglePlayPause();
-            if (timerIntervalRef.current) {
-              clearInterval(timerIntervalRef.current);
-              timerIntervalRef.current = null;
-            }
-            return null;
-          }
-          return prev - 1;
-        });
-      }, 60000);
-
-      return () => {
-        if (timerIntervalRef.current) {
-          clearInterval(timerIntervalRef.current);
-          timerIntervalRef.current = null;
-        }
-      };
-    }
-  }, [sleepTimer, togglePlayPause]);
+  const handleCancelTimer = useCallback(() => {
+    cancelTimer();
+  }, [cancelTimer]);
 
   if (!currentBook) {
     return (
@@ -281,7 +247,7 @@ export default function PlayerScreen() {
           <View style={styles.chapterModal}>
             <View style={styles.chapterHeader}>
               <Text style={styles.chapterModalTitle}>{t('player.selectPart')}</Text>
-              <TouchableOpacity onPress={() => setShowChapters(false)}>
+              <TouchableOpacity onPress={() => setShowChapters(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Ionicons name="close" size={28} color={colors.text} />
               </TouchableOpacity>
             </View>

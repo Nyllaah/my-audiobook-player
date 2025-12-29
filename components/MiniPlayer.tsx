@@ -1,5 +1,7 @@
+import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useTheme } from '@/context/ThemeContext';
+import { formatTime } from '@/utils/timeFormatter';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
@@ -13,17 +15,6 @@ export default function MiniPlayer() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (!currentBook) return null;
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const progress = playbackState.duration > 0 
     ? (playbackState.position / playbackState.duration) * 100 
@@ -78,7 +69,7 @@ export default function MiniPlayer() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 65,
@@ -100,7 +91,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryOrange,
   },
   content: {
     flexDirection: 'row',
