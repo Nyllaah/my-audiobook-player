@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "narria-audiobook-player",
+    "name": "Narria Audiobook Player",
     "slug": "narria-audiobook-player",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/images/narria-logo.png",
+        "image": "./assets/images/narria-logo-big-n.png",
         "resizeMode": "contain",
         "backgroundColor": "#002b64"
       },
@@ -20,12 +20,10 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#002b64",
-        "foregroundImage": "./assets/images/narria-logo-big-n.png",
-        "backgroundImage": "./assets/images/narria-logo-big-n.png",
-        "monochromeImage": "./assets/images/narria-logo-big-n.png"
+        "foregroundImage": "./assets/images/narria-logo-big-n.png"
       },
       "splash": {
-        "image": "./assets/images/narria-logo.png",
+        "image": "./assets/images/narria-logo-big-n.png",
         "resizeMode": "contain",
         "backgroundColor": "#002b64"
       },
@@ -42,7 +40,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/narria-logo.png",
+          "image": "./assets/images/narria-logo-big-n.png",
           "resizeMode": "contain",
           "backgroundColor": "#002b64",
           "dark": {
