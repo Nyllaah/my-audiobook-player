@@ -42,7 +42,7 @@ A beautiful, feature-rich audiobook player built with React Native and Expo. Enj
 ### Prerequisites
 - Node.js >= 20.19.4
 - Yarn (recommended) or npm
-- Expo Go app (for testing on device)
+- **Development build** (required for audio): This app uses `react-native-track-player` for background playback and notification controls, which does not work in Expo Go. Create a [development build](https://docs.expo.dev/develop/development-builds/introduction/) with `npx expo run:android` or `npx expo run:ios`.
 
 ### Installation
 
@@ -63,9 +63,8 @@ A beautiful, feature-rich audiobook player built with React Native and Expo. Enj
    ```
 
 4. **Run on your device**
-   - Scan the QR code with Expo Go (Android)
-   - Scan the QR code with Camera app (iOS)
-   - Or press `a` for Android emulator, `i` for iOS simulator
+   - Use a development build: `npx expo run:android` or `npx expo run:ios` (Expo Go does not support the audio player).
+   - Or press `a` for Android emulator, `i` for iOS simulator when using a dev build.
 
 ### WSL Users
 If you're using WSL, start with tunnel mode:
@@ -91,7 +90,8 @@ my-audiobook-app/
 │   ├── PlayerScreen.tsx   # Full player view
 │   └── SettingsScreen.tsx # App settings
 ├── services/              # Business logic
-│   ├── audioPlayerService.ts  # Audio playback (expo-av)
+│   ├── audioPlayerService.ts  # Audio playback (react-native-track-player)
+│   ├── playbackService.ts    # Background/notification media controls
 │   └── storageService.ts      # AsyncStorage wrapper
 ├── types/                 # TypeScript definitions
 │   └── audiobook.ts       # Audiobook interfaces
@@ -105,7 +105,7 @@ my-audiobook-app/
 - **[Expo](https://expo.dev/)** - Development platform
 - **[TypeScript](https://www.typescriptlang.org/)** - Type safety
 - **[Expo Router](https://docs.expo.dev/router/introduction/)** - File-based navigation
-- **[expo-av](https://docs.expo.dev/versions/latest/sdk/av/)** - Audio playback
+- **[react-native-track-player](https://rntp.dev/)** - Audio playback, background, lock screen & notification controls
 - **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)** - Data persistence
 - **[expo-document-picker](https://docs.expo.dev/versions/latest/sdk/document-picker/)** - File selection
 - **[expo-image-picker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)** - Image selection
@@ -161,7 +161,7 @@ yarn test
 
 - Built with [Expo](https://expo.dev/)
 - Icons from [Ionicons](https://ionic.io/ionicons)
-- Audio playback powered by [expo-av](https://docs.expo.dev/versions/latest/sdk/av/)
+- Audio playback and notification controls powered by [react-native-track-player](https://rntp.dev/)
 
 ## 📞 Support
 

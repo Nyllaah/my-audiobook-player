@@ -2,7 +2,9 @@ import { TIMING } from '@/constants/timing';
 import { audioPlayerService, PlayerState } from '@/services/audioPlayerService';
 import { storageService } from '@/services/storageService';
 import { Audiobook, PlaybackState } from '@/types/audiobook';
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { useSettings } from '@/context/SettingsContext';
 
 interface AudiobookContextType {
   audiobooks: Audiobook[];
@@ -26,6 +28,7 @@ interface AudiobookContextType {
 const AudiobookContext = createContext<AudiobookContextType | undefined>(undefined);
 
 export function AudiobookProvider({ children }: { children: React.ReactNode }) {
+  const { skipForwardSeconds, skipBackwardSeconds } = useSettings();
   const [audiobooks, setAudiobooks] = useState<Audiobook[]>([]);
   const [currentBook, setCurrentBook] = useState<Audiobook | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,12 +44,48 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const init = async () => {
       await audioPlayerService.initialize();
+      await audioPlayerService.applyNotificationOptions(skipForwardSeconds, skipBackwardSeconds);
       const books = await storageService.getAudiobooks();
       setAudiobooks(books);
       setIsLoading(false);
     };
     init();
-     
+  }, []);
+
+  useEffect(() => {
+    audioPlayerService.applyNotificationOptions(skipForwardSeconds, skipBackwardSeconds);
+  }, [skipForwardSeconds, skipBackwardSeconds]);
+
+  const currentBookRef = useRef(currentBook);
+  currentBookRef.current = currentBook;
+
+  useEffect(() => {
+    const onProgressSave = (positionSeconds: number) => {
+      const book = currentBookRef.current;
+      if (!book || positionSeconds < 0) return;
+      storageService.updateAudiobook(book.id, { currentPosition: positionSeconds });
+      setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, currentPosition: positionSeconds } : null));
+    };
+    audioPlayerService.setProgressSaveCallback(onProgressSave);
+    return () => audioPlayerService.setProgressSaveCallback(null);
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'background') {
+        const book = currentBookRef.current;
+        if (!book) return;
+        audioPlayerService.getPosition().then((position) => {
+          if (position > 0) {
+            storageService.updateAudiobook(book.id, {
+              currentPosition: position,
+              ...(book.parts?.length ? { currentPart: book.currentPart ?? 0 } : {}),
+            });
+          }
+        });
+      }
+    });
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {
@@ -54,7 +93,7 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       const state = await audioPlayerService.getState();
       const position = await audioPlayerService.getPosition();
       const duration = await audioPlayerService.getDuration();
-      
+      const activePartIndex = await audioPlayerService.getActivePartIndex();
       setPlaybackState((prev) => ({
         ...prev,
         isPlaying: state === PlayerState.Playing,
@@ -62,7 +101,10 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
         duration,
         currentBook,
       }));
-    }, TIMING.PLAYBACK_STATE_UPDATE_INTERVAL); 
+      if (currentBook?.parts && currentBook.parts.length > 1 && activePartIndex !== undefined && activePartIndex !== currentBook.currentPart) {
+        setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, currentPart: activePartIndex } : null));
+      }
+    }, TIMING.PLAYBACK_STATE_UPDATE_INTERVAL);
 
     return () => clearInterval(interval);
   }, [currentBook]);
@@ -144,12 +186,12 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const skipForward = useCallback(async () => {
-    await audioPlayerService.skipForward(30);
-  }, []);
+    await audioPlayerService.skipForward(skipForwardSeconds);
+  }, [skipForwardSeconds]);
 
   const skipBackward = useCallback(async () => {
-    await audioPlayerService.skipBackward(15);
-  }, []);
+    await audioPlayerService.skipBackward(skipBackwardSeconds);
+  }, [skipBackwardSeconds]);
 
   const setPlaybackRate = useCallback(async (rate: number) => {
     await audioPlayerService.setPlaybackRate(rate);

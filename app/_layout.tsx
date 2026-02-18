@@ -5,9 +5,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import TrackPlayer from 'react-native-track-player';
 import 'react-native-reanimated';
 
 import { AudiobookProvider } from '@/context/AudiobookContext';
+import { playbackService } from '@/services/playbackService';
+
+TrackPlayer.registerPlaybackService(() => playbackService);
 import { LanguageProvider } from '@/context/LanguageContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import { ThemeProvider } from '@/context/ThemeContext';

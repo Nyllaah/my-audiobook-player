@@ -36,7 +36,8 @@
       "package": "com.nyllaah.narriaaudiobookplayer",
       "permissions": [
         "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
       ]
     },
     "web": {
@@ -53,6 +54,14 @@
           "backgroundColor": "#002b64",
           "dark": {
             "backgroundColor": "#002b64"
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
           }
         }
       ]
