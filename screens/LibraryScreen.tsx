@@ -2,10 +2,12 @@ import { AudiobookListItem } from '@/components/library/audiobook-list-item';
 import { DarkColors, LightColors } from '@/constants/colors';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { useAudiobook } from '@/context/AudiobookContext';
+import { audioPlayerService } from '@/services/audioPlayerService';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
+import { getArtworkUriFromAudioFile } from '@/utils/audioMetadata';
 import { detectAudiobookTitle, sortAudioFiles } from '@/utils/audiobookParser';
 import { isImageFile } from '@/utils/fileUtils';
 import { Ionicons } from '@expo/vector-icons';
@@ -119,7 +121,7 @@ export default function LibraryScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -151,7 +153,7 @@ export default function LibraryScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -176,15 +178,16 @@ export default function LibraryScreen() {
     });
 
     await refreshLibrary();
-    
+
     if (currentBook?.id === editingBook.id) {
       const books = await storageService.getAudiobooks();
       const updatedBook = books.find(b => b.id === editingBook.id);
       if (updatedBook) {
         setCurrentBook(updatedBook);
       }
+      await audioPlayerService.updateCurrentTrackArtwork(editCoverUri ?? undefined);
     }
-    
+
     setEditDialogVisible(false);
     setEditingBook(null);
     setEditTitle('');
@@ -233,13 +236,21 @@ export default function LibraryScreen() {
         
         if (audioFiles.length === 1) {
           const file = audioFiles[0];
+          let coverUri = autoCoverUri;
+          if (!coverUri) {
+            try {
+              coverUri = await getArtworkUriFromAudioFile(file.uri) ?? undefined;
+            } catch {
+              // Ignore metadata errors (e.g. native FileNotFoundException on some URIs)
+            }
+          }
           const audiobook: Audiobook = {
             id: Date.now().toString(),
             title: file.name.replace(/\.[^/.]+$/, ''),
             uri: file.uri,
             addedDate: Date.now(),
             currentPosition: 0,
-            artwork: autoCoverUri || undefined,
+            artwork: coverUri ?? undefined,
           };
           try {
             await addAudiobook(audiobook);
@@ -254,19 +265,32 @@ export default function LibraryScreen() {
         }
 
         const sortedParts = sortAudioFiles(audioFiles);
-        
         const detectedTitle = detectAudiobookTitle(audioFiles);
+        let coverFromMetadata = autoCoverUri;
+        if (!coverFromMetadata) {
+          try {
+            coverFromMetadata = await getArtworkUriFromAudioFile(sortedParts[0].uri);
+          } catch {
+            // Ignore metadata errors (e.g. native FileNotFoundException on some URIs)
+          }
+        }
 
         setIsAdding(false);
         setPendingAudiobook({ sortedParts, detectedTitle });
         setEditableTitle(detectedTitle);
-        setPendingCoverUri(autoCoverUri);
+        setPendingCoverUri(coverFromMetadata);
         setTitleDialogVisible(true);
       }
     } catch (error) {
       setIsAdding(false);
       console.error('Error picking audio files:', error);
-      Alert.alert('Error', 'Failed to add audiobook');
+      const message = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'Error',
+        message.includes('FileNotFoundException') || message.includes('Cello error')
+          ? 'Could not read the selected file(s). Try choosing the file again or a different folder.'
+          : 'Failed to add audiobook. Please try again.'
+      );
     }
   };
 

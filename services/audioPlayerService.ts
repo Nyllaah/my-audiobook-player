@@ -72,6 +72,7 @@ export class AudioPlayerService {
     skipForwardSeconds: number = DEFAULT_SKIP_FORWARD,
     skipBackwardSeconds: number = DEFAULT_SKIP_BACKWARD
   ): Promise<void> {
+    if (!this.isInitialized) return;
     try {
       await TrackPlayer.updateOptions({
         capabilities: [
@@ -246,6 +247,22 @@ export class AudioPlayerService {
 
   getCurrentAudiobook(): Audiobook | null {
     return this.currentAudiobook;
+  }
+
+  /**
+   * Updates the artwork for the currently active track (e.g. after user changes cover).
+   * Use when the current audiobook's cover was updated so the notification reflects it.
+   */
+  async updateCurrentTrackArtwork(artwork: string | undefined): Promise<void> {
+    if (!this.isInitialized) return;
+    try {
+      const index = await TrackPlayer.getActiveTrackIndex();
+      if (index != null && index !== undefined) {
+        await TrackPlayer.updateMetadataForTrack(index, { artwork });
+      }
+    } catch (error) {
+      console.error('Failed to update track artwork:', error);
+    }
   }
 }
 

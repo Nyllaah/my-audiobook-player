@@ -7,7 +7,7 @@
     "icon": "./assets/images/narria-logo-big-n.png",
     "scheme": "narriaaudiobookplayer",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "splash": {
