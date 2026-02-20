@@ -11,13 +11,13 @@ export default function MiniPlayer() {
   const router = useRouter();
   const { colors } = useTheme();
   const { currentBook, playbackState, togglePlayPause } = useAudiobook();
-  
+
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (!currentBook) return null;
 
-  const progress = playbackState.duration > 0 
-    ? (playbackState.position / playbackState.duration) * 100 
+  const progress = playbackState.duration > 0
+    ? (playbackState.position / playbackState.duration) * 100
     : 0;
 
   return (
@@ -29,19 +29,19 @@ export default function MiniPlayer() {
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${progress}%` }]} />
       </View>
-      
+
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           {currentBook.artwork ? (
-            <Image 
-              source={{ uri: currentBook.artwork }} 
+            <Image
+              source={{ uri: currentBook.artwork }}
               style={styles.coverImage}
             />
           ) : (
             <Ionicons name="book" size={32} color={colors.primaryOrange} />
           )}
         </View>
-        
+
         <View style={styles.info}>
           <Text style={styles.title} numberOfLines={1}>
             {currentBook.title}
@@ -50,7 +50,7 @@ export default function MiniPlayer() {
             {formatTime(playbackState.position)} / {formatTime(playbackState.duration)}
           </Text>
         </View>
-        
+
         <TouchableOpacity
           style={styles.playButton}
           onPress={(e) => {

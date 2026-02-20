@@ -15,16 +15,16 @@ interface AudiobookListItemProps {
   onShowMenu: (book: Audiobook, position: { x: number; y: number }) => void;
 }
 
-function AudiobookListItemComponent({ 
-  item, 
-  onDelete, 
-  onEdit, 
-  onShowMenu 
+function AudiobookListItemComponent({
+  item,
+  onDelete,
+  onEdit,
+  onShowMenu
 }: AudiobookListItemProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const { playAudiobook, refreshLibrary } = useAudiobook();
-  
+
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handlePlayBook = useCallback(async () => {
@@ -143,4 +143,3 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSh
     padding: 8,
   },
 });
-

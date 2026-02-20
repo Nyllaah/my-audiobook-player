@@ -1,4 +1,4 @@
-import { AudiobookListItem } from '@/components/AudiobookListItem';
+import { AudiobookListItem } from '@/components/library/audiobook-list-item';
 import { DarkColors, LightColors } from '@/constants/colors';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { useAudiobook } from '@/context/AudiobookContext';
