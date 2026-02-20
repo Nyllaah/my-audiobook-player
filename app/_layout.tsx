@@ -4,25 +4,25 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { LogBox, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
-LogBox.ignoreLogs([
-  'The app is running using the Legacy Architecture',
-  'Unable to activate keep awake', // Known Expo/Android issue when device locked or app backgrounded
-]);
-import TrackPlayer from 'react-native-track-player';
 import 'react-native-reanimated';
+import TrackPlayer from 'react-native-track-player';
 
 import { AudiobookProvider } from '@/context/AudiobookContext';
-import { playbackService } from '@/services/playbackService';
 import { LanguageProvider } from '@/context/LanguageContext';
+import { SettingsProvider } from '@/context/SettingsContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { playbackService } from '@/services/playbackService';
+
+declare global {
+  var __TRACK_PLAYER_REGISTERED__: boolean | undefined;
+}
 
 if (typeof __TRACK_PLAYER_REGISTERED__ === 'undefined') {
   TrackPlayer.registerPlaybackService(() => playbackService);
-  (globalThis as unknown as { __TRACK_PLAYER_REGISTERED__?: boolean }).__TRACK_PLAYER_REGISTERED__ = true;
+  __TRACK_PLAYER_REGISTERED__ = true;
 }
-import { SettingsProvider } from '@/context/SettingsContext';
-import { ThemeProvider } from '@/context/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
 

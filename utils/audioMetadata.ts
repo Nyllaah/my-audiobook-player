@@ -1,5 +1,5 @@
 import { getAudioMetadata } from '@missingcore/audio-metadata';
-import * as FileSystem from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 
 const SUPPORTED_EXTENSIONS = ['mp3', 'm4a', 'mp4', 'flac'];
 
@@ -46,11 +46,10 @@ export async function getArtworkUriFromAudioFile(audioUri: string): Promise<stri
       }
     }
     const filename = `cover-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-    const path = `${FileSystem.cacheDirectory}${filename}`;
-    await FileSystem.writeAsStringAsync(path, base64Data, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    return path.startsWith('file://') ? path : `file://${path}`;
+    const file = new File(Paths.cache, filename);
+    (file as { write(content: string | Uint8Array, options?: { encoding?: string }): void }).write(base64Data, { encoding: 'base64' });
+    const uri = file.uri;
+    return uri.startsWith('file://') ? uri : `file://${uri}`;
   } catch {
     return null;
   }
