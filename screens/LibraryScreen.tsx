@@ -2,9 +2,9 @@ import { AudiobookListItem } from '@/components/library/audiobook-list-item';
 import { DarkColors, LightColors } from '@/constants/colors';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
 import { useAudiobook } from '@/context/AudiobookContext';
-import { audioPlayerService } from '@/services/audioPlayerService';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
+import { audioPlayerService } from '@/services/audioPlayerService';
 import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
 import { getArtworkUriFromAudioFile } from '@/utils/audioMetadata';
@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, findNodeHandle, FlatList, Image, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LibraryScreen() {
   const { colors } = useTheme();
@@ -41,6 +41,36 @@ export default function LibraryScreen() {
   const [actionMenuVisible, setActionMenuVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Audiobook | null>(null);
   const menuPositionRef = useRef({ x: 0, y: 0 });
+
+  const titleModalScrollRef = useRef<ScrollView>(null);
+  const titleModalContentRef = useRef<View>(null);
+  const titleInputWrapperRef = useRef<View>(null);
+  const editModalScrollRef = useRef<ScrollView>(null);
+  const editModalContentRef = useRef<View>(null);
+  const editTitleWrapperRef = useRef<View>(null);
+  const editAuthorWrapperRef = useRef<View>(null);
+
+  const scrollFocusedInputIntoView = useCallback(
+    (scrollRef: React.RefObject<ScrollView | null>, contentRef: React.RefObject<View | null>, inputWrapperRef: React.RefObject<View | null>, paddingFromTop = 80) => {
+      const run = () => {
+        if (!scrollRef.current || !contentRef.current || !inputWrapperRef.current) return;
+        const contentNode = findNodeHandle(contentRef.current);
+        if (contentNode == null) return;
+        inputWrapperRef.current.measureLayout(
+          contentNode,
+          (_x, y, _w, _h) => {
+            scrollRef.current?.scrollTo({
+              y: Math.max(0, 24 + y - paddingFromTop),
+              animated: true,
+            });
+          },
+          () => {}
+        );
+      };
+      setTimeout(run, 350);
+    },
+    []
+  );
 
   const hasSeenImportInfo = async (): Promise<boolean> => {
     try {
@@ -239,7 +269,7 @@ export default function LibraryScreen() {
           let coverUri = autoCoverUri;
           if (!coverUri) {
             try {
-              coverUri = await getArtworkUriFromAudioFile(file.uri) ?? undefined;
+              coverUri = await getArtworkUriFromAudioFile(file.uri) ?? null;
             } catch {
               // Ignore metadata errors (e.g. native FileNotFoundException on some URIs)
             }
@@ -395,7 +425,18 @@ export default function LibraryScreen() {
         onRequestClose={handleCancelTitle}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <KeyboardAvoidingView
+            behavior="padding"
+            style={styles.keyboardAvoid}
+            keyboardVerticalOffset={0}
+          >
+            <ScrollView
+              ref={titleModalScrollRef}
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View ref={titleModalContentRef} style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('modals.editAudiobookTitle')}</Text>
             
             {pendingAudiobook && (
@@ -447,14 +488,17 @@ export default function LibraryScreen() {
                 </View>
 
                 <Text style={styles.inputLabel}>{t('modals.title')}</Text>
-                <TextInput
-                  style={styles.titleInput}
-                  value={editableTitle}
-                  onChangeText={setEditableTitle}
-                  placeholder={t('modals.enterTitle')}
-                  autoFocus
-                  selectTextOnFocus
-                />
+                <View ref={titleInputWrapperRef}>
+                  <TextInput
+                    style={styles.titleInput}
+                    value={editableTitle}
+                    onChangeText={setEditableTitle}
+                    placeholder={t('modals.enterTitle')}
+                    autoFocus
+                    selectTextOnFocus
+                    onFocus={() => scrollFocusedInputIntoView(titleModalScrollRef, titleModalContentRef, titleInputWrapperRef)}
+                  />
+                </View>
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
@@ -472,7 +516,9 @@ export default function LibraryScreen() {
                 </View>
               </>
             )}
-          </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -484,7 +530,18 @@ export default function LibraryScreen() {
         onRequestClose={handleCancelEdit}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <KeyboardAvoidingView
+            behavior="padding"
+            style={styles.keyboardAvoid}
+            keyboardVerticalOffset={0}
+          >
+            <ScrollView
+              ref={editModalScrollRef}
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View ref={editModalContentRef} style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('modals.editAudiobook')}</Text>
             
             <Text style={styles.inputLabel}>{t('modals.pickCover')}</Text>
@@ -517,22 +574,28 @@ export default function LibraryScreen() {
             </View>
 
             <Text style={styles.inputLabel}>{t('modals.title')}</Text>
-            <TextInput
-              style={styles.titleInput}
-              value={editTitle}
-              onChangeText={setEditTitle}
-              placeholder={t('modals.enterTitle')}
-              autoCapitalize="words"
-            />
+            <View ref={editTitleWrapperRef}>
+              <TextInput
+                style={styles.titleInput}
+                value={editTitle}
+                onChangeText={setEditTitle}
+                placeholder={t('modals.enterTitle')}
+                autoCapitalize="words"
+                onFocus={() => scrollFocusedInputIntoView(editModalScrollRef, editModalContentRef, editTitleWrapperRef)}
+              />
+            </View>
 
             <Text style={styles.inputLabel}>{t('modals.author')}</Text>
-            <TextInput
-              style={styles.titleInput}
-              value={editAuthor}
-              onChangeText={setEditAuthor}
-              placeholder={t('modals.author')}
-              autoCapitalize="words"
-            />
+            <View ref={editAuthorWrapperRef}>
+              <TextInput
+                style={styles.titleInput}
+                value={editAuthor}
+                onChangeText={setEditAuthor}
+                placeholder={t('modals.author')}
+                autoCapitalize="words"
+                onFocus={() => scrollFocusedInputIntoView(editModalScrollRef, editModalContentRef, editAuthorWrapperRef)}
+              />
+            </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -548,7 +611,9 @@ export default function LibraryScreen() {
                 <Text style={styles.confirmButtonText}>{t('modals.save')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -637,6 +702,7 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSh
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: colors.textSecondary,
   },
   subtitle: {
     fontSize: 16,
@@ -749,12 +815,26 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSh
     justifyContent: 'center',
     alignItems: 'center',
   },
+  keyboardAvoid: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
   modalContent: {
     backgroundColor: colors.backgroundLight,
     borderRadius: 12,
     padding: 24,
-    width: '85%',
-    maxWidth: 400,
+    maxWidth: 520,
+    minWidth: '80%',
+    alignSelf: 'center',
   },
   modalTitle: {
     fontSize: 20,

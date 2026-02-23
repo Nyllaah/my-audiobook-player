@@ -15,13 +15,9 @@ import { SettingsProvider } from '@/context/SettingsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { playbackService } from '@/services/playbackService';
 
-declare global {
-  var __TRACK_PLAYER_REGISTERED__: boolean | undefined;
-}
-
-if (typeof __TRACK_PLAYER_REGISTERED__ === 'undefined') {
+if (typeof (globalThis as unknown as { __TRACK_PLAYER_REGISTERED__?: boolean }).__TRACK_PLAYER_REGISTERED__ === 'undefined') {
   TrackPlayer.registerPlaybackService(() => playbackService);
-  __TRACK_PLAYER_REGISTERED__ = true;
+  (globalThis as unknown as { __TRACK_PLAYER_REGISTERED__: boolean }).__TRACK_PLAYER_REGISTERED__ = true;
 }
 
 SplashScreen.preventAutoHideAsync();
