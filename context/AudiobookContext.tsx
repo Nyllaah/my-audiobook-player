@@ -65,6 +65,9 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       if (!book || positionSeconds < 0) return;
       storageService.updateAudiobook(book.id, { currentPosition: positionSeconds });
       setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, currentPosition: positionSeconds } : null));
+      setAudiobooks((prev) =>
+        prev.map((b) => (b.id === book.id ? { ...b, currentPosition: positionSeconds } : b))
+      );
     };
     audioPlayerService.setProgressSaveCallback(onProgressSave);
     return () => audioPlayerService.setProgressSaveCallback(null);
@@ -81,6 +84,13 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
               currentPosition: position,
               ...(book.parts?.length ? { currentPart: book.currentPart ?? 0 } : {}),
             });
+            setAudiobooks((prev) =>
+              prev.map((b) =>
+                b.id === book.id
+                  ? { ...b, currentPosition: position, currentPart: book.currentPart ?? b.currentPart }
+                  : b
+              )
+            );
           }
         });
       }
@@ -101,8 +111,36 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
         duration,
         currentBook,
       }));
-      if (currentBook?.parts && currentBook.parts.length > 1 && activePartIndex !== undefined && activePartIndex !== currentBook.currentPart) {
+
+      if (!currentBook) return;
+
+      const partChanged =
+        currentBook.parts &&
+        currentBook.parts.length > 1 &&
+        activePartIndex !== undefined &&
+        activePartIndex !== currentBook.currentPart;
+      const needsDuration = duration > 0 && (currentBook.duration == null || currentBook.duration === 0);
+
+      if (partChanged) {
         setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, currentPart: activePartIndex } : null));
+      }
+      if (needsDuration) {
+        await storageService.updateAudiobook(currentBook.id, { duration });
+        setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, duration } : null));
+      }
+      if (partChanged || needsDuration) {
+        setAudiobooks((prev) =>
+          prev.map((b) =>
+            b.id === currentBook.id
+              ? {
+                  ...b,
+                  currentPosition: position,
+                  ...(partChanged ? { currentPart: activePartIndex } : {}),
+                  ...(needsDuration ? { duration } : {}),
+                }
+              : b
+          )
+        );
       }
     }, TIMING.PLAYBACK_STATE_UPDATE_INTERVAL);
 
@@ -110,16 +148,23 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   }, [currentBook]);
   const saveCurrentProgress = useCallback(async () => {
     if (!currentBook || playbackState.position <= 0) return;
-    
+
     const updates: Partial<Audiobook> = {
       currentPosition: playbackState.position,
     };
-    
+
     if (currentBook.parts && currentBook.parts.length > 1) {
-      updates.currentPart = currentBook.currentPart || 0;
+      updates.currentPart = currentBook.currentPart ?? 0;
     }
-    
+
     await storageService.updateAudiobook(currentBook.id, updates);
+    setAudiobooks((prev) =>
+      prev.map((b) =>
+        b.id === currentBook.id
+          ? { ...b, currentPosition: playbackState.position, currentPart: updates.currentPart ?? b.currentPart }
+          : b
+      )
+    );
   }, [currentBook, playbackState.position]);
 
   useEffect(() => {
@@ -163,6 +208,16 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       await audioPlayerService.loadAudiobook(bookToPlay);
       await audioPlayerService.play();
       setCurrentBook(bookToPlay);
+
+      const storedPosition = bookToPlay.currentPosition ?? 0;
+      const storedDuration = bookToPlay.duration ?? 0;
+      setPlaybackState((prev) => ({
+        ...prev,
+        position: storedPosition,
+        duration: storedDuration > 0 ? storedDuration : prev.duration,
+        currentBook: bookToPlay,
+      }));
+
       await storageService.updateAudiobook(audiobook.id, {
         lastPlayed: Date.now(),
       });

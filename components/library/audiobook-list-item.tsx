@@ -28,8 +28,15 @@ function AudiobookListItemComponent({
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const progress = useMemo(() => {
-    const totalDuration = item.duration;
     const position = item.currentPosition ?? 0;
+    let totalDuration = item.duration;
+    if (totalDuration == null || totalDuration <= 0) {
+      const parts = item.parts;
+      if (parts?.length) {
+        const sum = parts.reduce((acc, p) => acc + (p.duration ?? 0), 0);
+        if (sum > 0) totalDuration = sum;
+      }
+    }
     if (totalDuration != null && totalDuration > 0) {
       return Math.min(1, Math.max(0, position / totalDuration));
     }
@@ -39,10 +46,10 @@ function AudiobookListItemComponent({
       return Math.min(1, partIndex / parts.length);
     }
     return 0;
-  }, [item.duration, item.currentPosition, item.currentPart, item.parts?.length]);
+  }, [item.duration, item.currentPosition, item.currentPart, item.parts]);
 
   const progressPercent = Math.round(progress * 100);
-  const hasProgress = progress > 0 || (item.currentPosition != null) || (item.currentPart != null);
+  const hasProgress = progress > 0 || item.currentPosition != null || item.currentPart != null;
 
   const handlePlayBook = useCallback(async () => {
     await refreshLibrary();
