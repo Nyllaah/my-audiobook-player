@@ -4,7 +4,7 @@
     "slug": "narria-audiobook-player",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/narria-logo-big-n.png",
+    "icon": "./assets/images/narria-icon.png",
     "scheme": "narriaaudiobookplayer",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -23,7 +23,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#002b64",
-        "foregroundImage": "./assets/images/narria-logo-big-n.png",
+        "foregroundImage": "./assets/images/narria-icon.png",
         "resizeMode": "contain"
       },
       "splash": {
