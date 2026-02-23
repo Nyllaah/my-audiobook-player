@@ -27,6 +27,23 @@ function AudiobookListItemComponent({
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const progress = useMemo(() => {
+    const totalDuration = item.duration;
+    const position = item.currentPosition ?? 0;
+    if (totalDuration != null && totalDuration > 0) {
+      return Math.min(1, Math.max(0, position / totalDuration));
+    }
+    const parts = item.parts;
+    const partIndex = item.currentPart ?? 0;
+    if (parts?.length) {
+      return Math.min(1, partIndex / parts.length);
+    }
+    return 0;
+  }, [item.duration, item.currentPosition, item.currentPart, item.parts?.length]);
+
+  const progressPercent = Math.round(progress * 100);
+  const hasProgress = progress > 0 || (item.currentPosition != null) || (item.currentPart != null);
+
   const handlePlayBook = useCallback(async () => {
     await refreshLibrary();
     const updatedBooks = await storageService.getAudiobooks();
@@ -73,6 +90,14 @@ function AudiobookListItemComponent({
             <Text style={styles.partCount}>
               {item.parts.length} {item.parts.length === 1 ? 'part' : 'parts'}
             </Text>
+          </View>
+        )}
+        {hasProgress && (
+          <View style={styles.progressRow}>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+            </View>
+            <Text style={styles.progressText}>{progressPercent}%</Text>
           </View>
         )}
       </View>
@@ -138,6 +163,31 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSh
     fontSize: 12,
     color: colors.primaryOrange,
     fontWeight: '600',
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: colors.primaryOrange,
+  },
+  progressText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    minWidth: 28,
+    textAlign: 'right',
   },
   moreButton: {
     padding: 8,
