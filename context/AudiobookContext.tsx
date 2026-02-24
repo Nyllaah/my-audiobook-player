@@ -48,6 +48,8 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       const books = await storageService.getAudiobooks();
       setAudiobooks(books);
       setIsLoading(false);
+      // Sync notification artwork from storage so custom cover shows after app restart
+      await audioPlayerService.syncCurrentTrackArtworkFromAudiobooks(books);
     };
     init();
   }, []);
@@ -74,7 +76,7 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+    const subscription = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
       if (nextState === 'background') {
         const book = currentBookRef.current;
         if (!book) return;
@@ -93,6 +95,9 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
             );
           }
         });
+      } else if (nextState === 'active') {
+        const books = await storageService.getAudiobooks();
+        await audioPlayerService.syncCurrentTrackArtworkFromAudiobooks(books);
       }
     });
     return () => subscription.remove();

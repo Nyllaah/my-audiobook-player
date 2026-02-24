@@ -264,6 +264,30 @@ export class AudioPlayerService {
       console.error('Failed to update track artwork:', error);
     }
   }
+
+  /**
+   * Syncs the notification/now-playing artwork from the stored audiobook list.
+   * Call after app init or when returning to foreground so the notification shows
+   * the latest cover (e.g. after user edited it) even if the track was loaded earlier.
+   */
+  async syncCurrentTrackArtworkFromAudiobooks(audiobooks: Audiobook[]): Promise<void> {
+    if (!this.isInitialized || audiobooks.length === 0) return;
+    try {
+      const track = await TrackPlayer.getActiveTrack();
+      if (!track?.id) return;
+      const book = audiobooks.find(
+        (b) => b.id === track.id || (typeof track.id === 'string' && track.id.startsWith(`${b.id}-`))
+      );
+      if (book) {
+        const index = await TrackPlayer.getActiveTrackIndex();
+        if (index != null && index !== undefined) {
+          await TrackPlayer.updateMetadataForTrack(index, { artwork: book.artwork });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to sync track artwork from audiobooks:', error);
+    }
+  }
 }
 
 export const audioPlayerService = AudioPlayerService.getInstance();

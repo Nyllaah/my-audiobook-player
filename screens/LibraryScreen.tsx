@@ -9,6 +9,7 @@ import { storageService } from '@/services/storageService';
 import { Audiobook } from '@/types/audiobook';
 import { getArtworkUriFromAudioFile } from '@/utils/audioMetadata';
 import { detectAudiobookTitle, sortAudioFiles } from '@/utils/audiobookParser';
+import { copyCoverToAppStorage, deleteStoredCover } from '@/utils/coverStorage';
 import { isImageFile } from '@/utils/fileUtils';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -201,10 +202,19 @@ export default function LibraryScreen() {
   const handleSaveEdit = async () => {
     if (!editingBook) return;
 
+    let artworkToSave: string | undefined;
+    if (editCoverUri) {
+      const permanentUri = await copyCoverToAppStorage(editCoverUri, editingBook.id);
+      artworkToSave = permanentUri ?? editCoverUri;
+    } else {
+      deleteStoredCover(editingBook.artwork);
+      artworkToSave = undefined;
+    }
+
     await storageService.updateAudiobook(editingBook.id, {
       title: editTitle.trim() || editingBook.title,
       author: editAuthor.trim(),
-      artwork: editCoverUri || undefined,
+      artwork: artworkToSave,
     });
 
     await refreshLibrary();
@@ -215,7 +225,7 @@ export default function LibraryScreen() {
       if (updatedBook) {
         setCurrentBook(updatedBook);
       }
-      await audioPlayerService.updateCurrentTrackArtwork(editCoverUri ?? undefined);
+      await audioPlayerService.updateCurrentTrackArtwork(artworkToSave);
     }
 
     setEditDialogVisible(false);
