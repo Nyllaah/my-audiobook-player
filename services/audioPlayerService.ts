@@ -1,5 +1,11 @@
 import { Audiobook } from '@/types/audiobook';
-import TrackPlayer, { Capability, Event, State } from 'react-native-track-player';
+import { Platform } from 'react-native';
+import TrackPlayer, {
+  AppKilledPlaybackBehavior,
+  Capability,
+  Event,
+  State,
+} from 'react-native-track-player';
 
 export enum PlayerState {
   None = 'none',
@@ -86,6 +92,12 @@ export class AudioPlayerService {
         forwardJumpInterval: skipForwardSeconds,
         backwardJumpInterval: skipBackwardSeconds,
         progressUpdateEventInterval: 1,
+        ...(Platform.OS === 'android' && {
+          android: {
+            appKilledPlaybackBehavior:
+              AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+          },
+        }),
       });
     } catch (error) {
       console.error('Failed to update options:', error);
