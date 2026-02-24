@@ -10,8 +10,7 @@ export async function playbackService() {
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
   TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
   TrackPlayer.addEventListener(Event.RemoteStop, async () => {
-    await audioPlayerService.savePositionNow();
-    TrackPlayer.stop();
+    await audioPlayerService.stop();
   });
 
   TrackPlayer.addEventListener(Event.RemoteSeek, (e) => {

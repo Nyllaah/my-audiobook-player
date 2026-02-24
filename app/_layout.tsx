@@ -1,6 +1,6 @@
 import { TIMING } from '@/constants/timing';
 import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -28,6 +28,8 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+  const router = useRouter();
+
   useEffect(() => {
     const hideSplash = async () => {
       await SplashScreen.hideAsync();
@@ -42,7 +44,7 @@ export default function RootLayout() {
       <LanguageProvider>
       <ThemeProvider>
         <SettingsProvider>
-          <AudiobookProvider>
+          <AudiobookProvider onNotificationCleared={() => router.dismiss()}>
             <NavigationThemeProvider value={DefaultTheme}>
               <Stack initialRouteName="(tabs)">
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

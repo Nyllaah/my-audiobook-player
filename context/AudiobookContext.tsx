@@ -1,10 +1,21 @@
 import { TIMING } from '@/constants/timing';
+import { useSettings } from '@/context/SettingsContext';
 import { audioPlayerService, PlayerState } from '@/services/audioPlayerService';
 import { storageService } from '@/services/storageService';
 import { Audiobook, PlaybackState } from '@/types/audiobook';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { useSettings } from '@/context/SettingsContext';
+import TrackPlayer, { Event, State } from 'react-native-track-player';
+
+/** Prevents hanging when TrackPlayer service is unbound (e.g. after notification cleared). */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('TrackPlayer timeout')), ms)
+    ),
+  ]);
+}
 
 interface AudiobookContextType {
   audiobooks: Audiobook[];
@@ -27,7 +38,13 @@ interface AudiobookContextType {
 
 const AudiobookContext = createContext<AudiobookContextType | undefined>(undefined);
 
-export function AudiobookProvider({ children }: { children: React.ReactNode }) {
+type AudiobookProviderProps = {
+  children: React.ReactNode;
+  /** Called when the user clears the notification or stops from it; use to e.g. go back to library. */
+  onNotificationCleared?: () => void;
+};
+
+export function AudiobookProvider({ children, onNotificationCleared }: AudiobookProviderProps) {
   const { skipForwardSeconds, skipBackwardSeconds } = useSettings();
   const [audiobooks, setAudiobooks] = useState<Audiobook[]>([]);
   const [currentBook, setCurrentBook] = useState<Audiobook | null>(null);
@@ -50,7 +67,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       const books = await storageService.getAudiobooks();
       setAudiobooks(books);
       setIsLoading(false);
-      // Sync notification artwork from storage so custom cover shows after app restart
       await audioPlayerService.syncCurrentTrackArtworkFromAudiobooks(books);
     };
     init();
@@ -62,6 +78,20 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
 
   const currentBookRef = useRef(currentBook);
   currentBookRef.current = currentBook;
+  const onNotificationClearedRef = useRef(onNotificationCleared);
+  onNotificationClearedRef.current = onNotificationCleared;
+
+  const goBackToLibrary = useCallback(() => {
+    setCurrentBook(null);
+    setPlaybackState({
+      isPlaying: false,
+      currentBook: null,
+      position: 0,
+      duration: 0,
+      playbackRate: 1.0,
+    });
+    onNotificationClearedRef.current?.();
+  }, []);
 
   useEffect(() => {
     const onProgressSave = (positionSeconds: number) => {
@@ -100,65 +130,105 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       } else if (nextState === 'active') {
         const books = await storageService.getAudiobooks();
         await audioPlayerService.syncCurrentTrackArtworkFromAudiobooks(books);
+        const book = currentBookRef.current;
+        if (book) {
+          setTimeout(async () => {
+            try {
+              const state = await withTimeout(
+                audioPlayerService.getState(),
+                TIMING.TRACK_PLAYER_CALL_TIMEOUT
+              );
+              if (state === PlayerState.None) {
+                goBackToLibrary();
+              }
+            } catch {
+              goBackToLibrary();
+            }
+          }, 400);
+        }
       }
     });
     return () => subscription.remove();
-  }, []);
+  }, [goBackToLibrary]);
+
+  // When user clears notification or taps Stop: go back to library and clear player state
+  useEffect(() => {
+    const sub = TrackPlayer.addEventListener(Event.PlaybackState, (payload: { state: State }) => {
+      if (payload.state === State.None || payload.state === State.Stopped) {
+        setPlaybackState((prev) => ({ ...prev, isPlaying: false }));
+        if (currentBookRef.current) {
+          goBackToLibrary();
+        }
+      }
+    });
+    return () => sub.remove();
+  }, [goBackToLibrary]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      const state = await audioPlayerService.getState();
-      const rawPosition = await audioPlayerService.getPosition();
-      const duration = await audioPlayerService.getDuration();
-      const activePartIndex = await audioPlayerService.getActivePartIndex();
-
-      const now = Date.now();
-      const lastSeek = lastSeekRef.current;
-      const position =
-        lastSeek && now - lastSeek.at < 800
-          ? lastSeek.position
-          : rawPosition;
-      if (lastSeek && now - lastSeek.at >= 800) {
-        lastSeekRef.current = null;
-      }
-
-      setPlaybackState((prev) => ({
-        ...prev,
-        isPlaying: state === PlayerState.Playing,
-        position,
-        duration,
-        currentBook,
-      }));
-
-      if (!currentBook) return;
-
-      const partChanged =
-        currentBook.parts &&
-        currentBook.parts.length > 1 &&
-        activePartIndex !== undefined &&
-        activePartIndex !== currentBook.currentPart;
-      const needsDuration = duration > 0 && (currentBook.duration == null || currentBook.duration === 0);
-
-      if (partChanged) {
-        setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, currentPart: activePartIndex } : null));
-      }
-      if (needsDuration) {
-        await storageService.updateAudiobook(currentBook.id, { duration });
-        setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, duration } : null));
-      }
-      if (partChanged || needsDuration) {
-        setAudiobooks((prev) =>
-          prev.map((b) =>
-            b.id === currentBook.id
-              ? {
-                  ...b,
-                  currentPosition: position,
-                  ...(partChanged ? { currentPart: activePartIndex } : {}),
-                  ...(needsDuration ? { duration } : {}),
-                }
-              : b
-          )
+      try {
+        const timeoutMs = TIMING.TRACK_PLAYER_CALL_TIMEOUT;
+        const [state, rawPosition, duration, activePartIndex] = await withTimeout(
+          Promise.all([
+            audioPlayerService.getState(),
+            audioPlayerService.getPosition(),
+            audioPlayerService.getDuration(),
+            audioPlayerService.getActivePartIndex(),
+          ]),
+          timeoutMs
         );
+
+        const now = Date.now();
+        const lastSeek = lastSeekRef.current;
+        const position =
+          lastSeek && now - lastSeek.at < 800
+            ? lastSeek.position
+            : rawPosition;
+        if (lastSeek && now - lastSeek.at >= 800) {
+          lastSeekRef.current = null;
+        }
+
+        setPlaybackState((prev) => ({
+          ...prev,
+          isPlaying: state === PlayerState.Playing,
+          position,
+          duration,
+          currentBook,
+        }));
+
+        if (!currentBook) return;
+
+        const partChanged =
+          currentBook.parts &&
+          currentBook.parts.length > 1 &&
+          activePartIndex !== undefined &&
+          activePartIndex !== currentBook.currentPart;
+        const needsDuration = duration > 0 && (currentBook.duration == null || currentBook.duration === 0);
+
+        if (partChanged) {
+          setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, currentPart: activePartIndex } : null));
+        }
+        if (needsDuration) {
+          await storageService.updateAudiobook(currentBook.id, { duration });
+          setCurrentBook((prev: Audiobook | null) => (prev ? { ...prev, duration } : null));
+        }
+        if (partChanged || needsDuration) {
+          setAudiobooks((prev) =>
+            prev.map((b) =>
+              b.id === currentBook.id
+                ? {
+                    ...b,
+                    currentPosition: position,
+                    ...(partChanged ? { currentPart: activePartIndex } : {}),
+                    ...(needsDuration ? { duration } : {}),
+                  }
+                : b
+            )
+          );
+        }
+      } catch (err) {
+        // Timeout or error when service unbound (e.g. notification cleared); don't freeze UI
+        setPlaybackState((prev) => ({ ...prev, isPlaying: false }));
       }
     }, TIMING.PLAYBACK_STATE_UPDATE_INTERVAL);
 
@@ -226,9 +296,6 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       await audioPlayerService.loadAudiobook(bookToPlay);
       await audioPlayerService.play();
       setCurrentBook(bookToPlay);
-
-      // Force notification artwork again after play(); native layer often (re)applies
-      // embedded artwork when playback starts, so override it with our stored cover.
       audioPlayerService.updateNowPlayingMetadataFromAudiobook(bookToPlay);
 
       const storedPosition = bookToPlay.currentPosition ?? 0;
@@ -249,14 +316,27 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const togglePlayPause = useCallback(async () => {
-    const state = await audioPlayerService.getState();
-    if (state === PlayerState.Playing) {
-      await audioPlayerService.pause();
-      await saveCurrentProgress();
-    } else {
-      await audioPlayerService.play();
+    try {
+      const state = await withTimeout(
+        audioPlayerService.getState(),
+        TIMING.TRACK_PLAYER_CALL_TIMEOUT
+      );
+      if (state === PlayerState.Playing) {
+        await audioPlayerService.pause();
+        await saveCurrentProgress();
+      } else {
+        if (state === PlayerState.None && currentBook) {
+          await playAudiobook(currentBook);
+        } else {
+          await audioPlayerService.play();
+        }
+      }
+    } catch {
+      if (currentBook) {
+        await playAudiobook(currentBook);
+      }
     }
-  }, [saveCurrentProgress]);
+  }, [saveCurrentProgress, currentBook, playAudiobook]);
 
   const seekTo = useCallback(async (position: number) => {
     lastSeekRef.current = { position, at: Date.now() };

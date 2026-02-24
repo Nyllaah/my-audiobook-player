@@ -61,6 +61,8 @@ export class AudioPlayerService {
 
       await this.applyNotificationOptions(DEFAULT_SKIP_FORWARD, DEFAULT_SKIP_BACKWARD);
 
+      this.eventSubscriptions.forEach((sub) => sub.remove());
+      this.eventSubscriptions = [];
       this.eventSubscriptions.push(
         TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
           this.savePositionNow();
@@ -116,7 +118,7 @@ export class AudioPlayerService {
   }
 
   async loadAudiobook(audiobook: Audiobook) {
-    try {
+    const load = async () => {
       await TrackPlayer.reset();
       this.currentAudiobook = audiobook;
 
@@ -138,17 +140,26 @@ export class AudioPlayerService {
         }
       }
 
-      // Force notification to use our metadata (title, artist, artwork) immediately.
-      // Native layer often shows embedded artwork from the audio file when the track first loads;
-      // this overrides it so the edited/stored cover shows from the first play.
       await TrackPlayer.updateNowPlayingMetadata({
         title: audiobook.title,
         artist: audiobook.author ?? '',
         artwork: audiobook.artwork,
       });
+    };
+
+    try {
+      await load();
     } catch (error) {
-      console.error('Failed to load audiobook:', error);
-      throw error;
+      console.error('Failed to load audiobook (service may have been unbound):', error);
+      // After notification is cleared, the native service can be unbound; re-setup and retry once
+      try {
+        this.isInitialized = false;
+        await this.initialize();
+        await load();
+      } catch (retryError) {
+        console.error('Failed to load audiobook after retry:', retryError);
+        throw retryError;
+      }
     }
   }
 
