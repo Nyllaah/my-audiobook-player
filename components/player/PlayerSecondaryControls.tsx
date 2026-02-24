@@ -38,16 +38,16 @@ export function PlayerSecondaryControls({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={onCyclePlaybackRate}>
-        <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
-        <Text style={styles.buttonText}>{playbackRate}x</Text>
-      </TouchableOpacity>
-
       <TouchableOpacity style={styles.button} onPress={onNotePress}>
         <Ionicons name="create-outline" size={20} color={colors.primaryOrange} />
         <Text style={styles.buttonText}>
-          {notesCount > 0 ? `Notes (${notesCount})` : 'Note'}
+          {`(${notesCount})`}
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={onCyclePlaybackRate}>
+        <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
+        <Text style={styles.buttonText}>{playbackRate}x</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -79,14 +79,12 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: 16,
-      paddingHorizontal: 32,
-      marginBottom: 20,
+      gap: 8,
     },
     button: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 4,
       paddingHorizontal: 16,
       paddingVertical: 10,
       backgroundColor: colors.backgroundLight,

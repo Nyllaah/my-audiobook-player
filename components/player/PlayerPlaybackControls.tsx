@@ -55,7 +55,6 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       alignItems: 'center',
       paddingHorizontal: 16,
       gap: 32,
-      marginBottom: 32,
     },
     controlButton: {
       alignItems: 'center',

@@ -33,8 +33,6 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
   StyleSheet.create({
     container: {
       alignItems: 'center',
-      marginTop: 20,
-      marginBottom: 40,
     },
     artwork: {
       width: 280,

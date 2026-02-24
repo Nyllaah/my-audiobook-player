@@ -278,16 +278,17 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      gap: 16,
       paddingTop: 36,
+      paddingBottom: 24,
     },
     closeButton: {
       paddingHorizontal: 16,
       alignSelf: 'flex-start',
+      marginBottom: 8,
     },
     content: {
       flex: 1,
-      justifyContent: 'space-evenly',
+      justifyContent: 'space-between',
       paddingHorizontal: 16,
     },
     viewNotesLink: {
@@ -295,7 +296,6 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
-      paddingVertical: 12,
     },
     viewNotesText: {
       fontSize: 15,

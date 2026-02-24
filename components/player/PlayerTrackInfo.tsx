@@ -30,7 +30,6 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 32,
-      marginBottom: 32,
     },
     title: {
       fontSize: 28,

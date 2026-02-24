@@ -51,7 +51,6 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 32,
-      marginBottom: 16,
     },
     slider: {
       width: '100%',
