@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function MiniPlayer() {
+export function MiniPlayer() {
   const router = useRouter();
   const { colors } = useTheme();
   const { currentBook, playbackState, togglePlayPause } = useAudiobook();
