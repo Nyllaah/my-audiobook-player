@@ -68,6 +68,31 @@ export function AudiobookProvider({ children, onNotificationCleared }: Audiobook
       setAudiobooks(books);
       setIsLoading(false);
       await audioPlayerService.syncCurrentTrackArtworkFromAudiobooks(books);
+
+      // If there is already an active track (e.g. app opened from notification),
+      // hydrate the currentBook and playback state from the active TrackPlayer track.
+      try {
+        const track = await TrackPlayer.getActiveTrack();
+        if (track?.id) {
+          const book = books.find(
+            (b) =>
+              b.id === track.id ||
+              (typeof track.id === 'string' && track.id.startsWith(`${b.id}-`))
+          );
+          if (book) {
+            setCurrentBook(book);
+            const progress = await TrackPlayer.getProgress();
+            setPlaybackState((prev) => ({
+              ...prev,
+              currentBook: book,
+              position: progress.position,
+              duration: progress.duration,
+            }));
+          }
+        }
+      } catch {
+        // Ignore errors when there is no active track or service is unbound.
+      }
     };
     init();
   }, []);

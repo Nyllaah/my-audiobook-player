@@ -153,13 +153,25 @@ export default function PlayerScreen() {
 
   const handleClose = useCallback(async () => {
     await saveCurrentProgress();
-    router.back();
+    if (router.canGoBack?.()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
   }, [saveCurrentProgress, router]);
 
   if (!currentBook) {
     return (
       <View style={styles.container}>
-        <PlayerEmptyState onGoToLibrary={() => router.back()} />
+        <PlayerEmptyState
+          onGoToLibrary={() => {
+            if (router.canGoBack?.()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          }}
+        />
       </View>
     );
   }

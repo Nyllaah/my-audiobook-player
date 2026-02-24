@@ -44,16 +44,32 @@ export default function RootLayout() {
       <LanguageProvider>
       <ThemeProvider>
         <SettingsProvider>
-          <AudiobookProvider onNotificationCleared={() => router.dismiss()}>
+          <AudiobookProvider
+            onNotificationCleared={() => {
+              if (router.canGoBack?.()) {
+                router.dismiss();
+              }
+            }}
+          >
             <NavigationThemeProvider value={DefaultTheme}>
               <Stack initialRouteName="(tabs)">
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen 
-                  name="player" 
-                  options={{ 
+                <Stack.Screen
+                  name="player"
+                  options={{
                     presentation: Platform.OS === 'android' ? 'transparentModal' : 'modal',
                     headerShown: false,
-                  }} 
+                  }}
+                />
+                <Stack.Screen
+                  name="notification.click"
+                  options={{
+                    headerShown: false,
+                    animation: 'none',
+                    contentStyle: {
+                      backgroundColor: 'transparent',
+                    },
+                  }}
                 />
               </Stack>
               <StatusBar style="auto" />
