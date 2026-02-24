@@ -7,6 +7,10 @@ import { audioPlayerService } from './audioPlayerService';
  * Must be registered at app startup via TrackPlayer.registerPlaybackService().
  */
 export async function playbackService() {
+  // Re-apply options (including Android "stop when app killed") so the native layer
+  // has the correct behavior when the service starts.
+  await audioPlayerService.applyNotificationOptionsFromStorage();
+
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
   TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
   TrackPlayer.addEventListener(Event.RemoteStop, async () => {

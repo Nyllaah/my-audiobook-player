@@ -6,6 +6,7 @@ import TrackPlayer, {
   Event,
   State,
 } from 'react-native-track-player';
+import { storageService } from './storageService';
 
 export enum PlayerState {
   None = 'none',
@@ -82,28 +83,51 @@ export class AudioPlayerService {
   ): Promise<void> {
     if (!this.isInitialized) return;
     try {
-      await TrackPlayer.updateOptions({
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.Stop,
-          Capability.SeekTo,
-          Capability.JumpForward,
-          Capability.JumpBackward,
-        ],
-        forwardJumpInterval: skipForwardSeconds,
-        backwardJumpInterval: skipBackwardSeconds,
-        progressUpdateEventInterval: 1,
-        ...(Platform.OS === 'android' && {
-          android: {
-            appKilledPlaybackBehavior:
-              AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-          },
-        }),
-      });
+      await this.doUpdateNotificationOptions(skipForwardSeconds, skipBackwardSeconds);
     } catch (error) {
       console.error('Failed to update options:', error);
     }
+  }
+
+  /**
+   * Re-applies notification options (including Android "stop when app killed").
+   * Call from the playback service when it starts so the native layer has the correct behavior.
+   */
+  async applyNotificationOptionsFromStorage(): Promise<void> {
+    try {
+      const settings = await storageService.getSettings();
+      await this.doUpdateNotificationOptions(
+        settings.skipForwardSeconds,
+        settings.skipBackwardSeconds
+      );
+    } catch (error) {
+      console.error('Failed to apply notification options from storage:', error);
+    }
+  }
+
+  private async doUpdateNotificationOptions(
+    skipForwardSeconds: number = DEFAULT_SKIP_FORWARD,
+    skipBackwardSeconds: number = DEFAULT_SKIP_BACKWARD
+  ): Promise<void> {
+    await TrackPlayer.updateOptions({
+      capabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.Stop,
+        Capability.SeekTo,
+        Capability.JumpForward,
+        Capability.JumpBackward,
+      ],
+      forwardJumpInterval: skipForwardSeconds,
+      backwardJumpInterval: skipBackwardSeconds,
+      progressUpdateEventInterval: 1,
+      ...(Platform.OS === 'android' && {
+        android: {
+          appKilledPlaybackBehavior:
+            AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+        },
+      }),
+    });
   }
 
   audiobookToTrack(audiobook: Audiobook, uri: string, partIndex?: number): { url: string; title: string; artist: string; artwork?: string; duration?: number; id?: string } {
