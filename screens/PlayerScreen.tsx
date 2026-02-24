@@ -1,5 +1,7 @@
 import {
   ChapterListModal,
+  NoteEditorModal,
+  NotesListModal,
   PlayerArtwork,
   PlayerChapterButton,
   PlayerEmptyState,
@@ -15,10 +17,12 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { storageService } from '@/services/storageService';
+import { AudiobookNote } from '@/types/note';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function PlayerScreen() {
   const router = useRouter();
@@ -43,6 +47,19 @@ export default function PlayerScreen() {
   const [seekPosition, setSeekPosition] = useState(0);
   const [showChapters, setShowChapters] = useState(false);
   const [showTimerDialog, setShowTimerDialog] = useState(false);
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
+  const [showNotesList, setShowNotesList] = useState(false);
+  const [notes, setNotes] = useState<AudiobookNote[]>([]);
+
+  const loadNotes = useCallback(async () => {
+    if (!currentBook) return;
+    const list = await storageService.getNotes(currentBook.id);
+    setNotes(list);
+  }, [currentBook]);
+
+  useEffect(() => {
+    if (currentBook) loadNotes();
+  }, [currentBook, loadNotes]);
 
   const handleTimerEnd = useCallback(async () => {
     await togglePlayPause();
@@ -97,6 +114,43 @@ export default function PlayerScreen() {
     setShowTimerDialog(false);
   }, [setSleepTimer]);
 
+  const handleNotePress = useCallback(async () => {
+    if (playbackState.isPlaying) {
+      await togglePlayPause();
+    }
+    setShowNoteEditor(true);
+  }, [playbackState.isPlaying, togglePlayPause]);
+
+  const handleSaveNote = useCallback(
+    async (text: string) => {
+      if (!currentBook) return;
+      await storageService.addNote({
+        audiobookId: currentBook.id,
+        positionSeconds: Math.floor(playbackState.position),
+        text,
+      });
+      setShowNoteEditor(false);
+      await loadNotes();
+    },
+    [currentBook, playbackState.position, loadNotes]
+  );
+
+  const handleSeekToNote = useCallback(
+    async (positionSeconds: number) => {
+      await seekTo(positionSeconds);
+      setShowNotesList(false);
+    },
+    [seekTo]
+  );
+
+  const handleDeleteNote = useCallback(
+    async (noteId: string) => {
+      await storageService.deleteNote(noteId);
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    },
+    []
+  );
+
   const handleClose = useCallback(async () => {
     await saveCurrentProgress();
     router.back();
@@ -122,46 +176,58 @@ export default function PlayerScreen() {
         <Ionicons name="chevron-back" size={32} color={colors.primaryOrange} />
       </TouchableOpacity>
 
-      <PlayerArtwork artworkUri={currentBook.artwork} />
-      <PlayerTrackInfo title={currentBook.title} author={currentBook.author} />
+      <View style={styles.content}>
+        <PlayerArtwork artworkUri={currentBook.artwork} />
+        <PlayerTrackInfo title={currentBook.title} author={currentBook.author} />
 
-      {hasMultipleParts && (
-        <PlayerChapterButton
-          currentPartIndex={currentPartIndex}
-          totalParts={currentBook.parts!.length}
-          partLabel={t('player.part', {
-            current: currentPartIndex + 1,
-            total: currentBook.parts!.length,
-          })}
-          onPress={() => setShowChapters(true)}
+        {hasMultipleParts && (
+          <PlayerChapterButton
+            currentPartIndex={currentPartIndex}
+            totalParts={currentBook.parts!.length}
+            partLabel={t('player.part', {
+              current: currentPartIndex + 1,
+              total: currentBook.parts!.length,
+            })}
+            onPress={() => setShowChapters(true)}
+          />
+        )}
+
+        <PlayerProgress
+          position={clampedPosition}
+          duration={duration}
+          isSeeking={isSeeking}
+          onSeekStart={handleSeekStart}
+          onSeekChange={handleSeekChange}
+          onSeekComplete={handleSeekComplete}
         />
-      )}
 
-      <PlayerProgress
-        position={clampedPosition}
-        duration={duration}
-        isSeeking={isSeeking}
-        onSeekStart={handleSeekStart}
-        onSeekChange={handleSeekChange}
-        onSeekComplete={handleSeekComplete}
-      />
+        <PlayerPlaybackControls
+          isPlaying={playbackState.isPlaying}
+          onPlayPause={togglePlayPause}
+          onSkipBackward={skipBackward}
+          onSkipForward={skipForward}
+          skipBackwardLabel={`${skipBackwardSeconds}s`}
+          skipForwardLabel={`${skipForwardSeconds}s`}
+        />
 
-      <PlayerPlaybackControls
-        isPlaying={playbackState.isPlaying}
-        onPlayPause={togglePlayPause}
-        onSkipBackward={skipBackward}
-        onSkipForward={skipForward}
-        skipBackwardLabel={`${skipBackwardSeconds}s`}
-        skipForwardLabel={`${skipForwardSeconds}s`}
-      />
+        <PlayerSecondaryControls
+          playbackRate={playbackState.playbackRate}
+          onCyclePlaybackRate={cyclePlaybackRate}
+          sleepTimerMinutes={sleepTimer}
+          onTimerPress={() => setShowTimerDialog(true)}
+          onCancelTimer={cancelTimer}
+          onNotePress={handleNotePress}
+          notesCount={notes.length}
+        />
 
-      <PlayerSecondaryControls
-        playbackRate={playbackState.playbackRate}
-        onCyclePlaybackRate={cyclePlaybackRate}
-        sleepTimerMinutes={sleepTimer}
-        onTimerPress={() => setShowTimerDialog(true)}
-        onCancelTimer={cancelTimer}
-      />
+        <TouchableOpacity
+          style={styles.viewNotesLink}
+          onPress={() => setShowNotesList(true)}
+        >
+          <Text style={styles.viewNotesText}>{t('player.viewNotes')}</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.primaryOrange} />
+        </TouchableOpacity>
+      </View>
 
       <ChapterListModal
         visible={showChapters}
@@ -181,6 +247,28 @@ export default function PlayerScreen() {
         onSelectMinutes={handleSetTimer}
         onClose={() => setShowTimerDialog(false)}
       />
+
+      <NoteEditorModal
+        visible={showNoteEditor}
+        positionSeconds={Math.floor(playbackState.position)}
+        saveLabel={t('common.save')}
+        cancelLabel={t('common.cancel')}
+        placeholder={t('player.notePlaceholder')}
+        onSave={handleSaveNote}
+        onClose={() => setShowNoteEditor(false)}
+      />
+
+      <NotesListModal
+        visible={showNotesList}
+        notes={notes}
+        title={t('player.notesTitle')}
+        emptyMessage={t('player.notesEmpty')}
+        deleteLabel={t('common.delete')}
+        closeLabel={t('common.close')}
+        onSeekToPosition={handleSeekToNote}
+        onDeleteNote={handleDeleteNote}
+        onClose={() => setShowNotesList(false)}
+      />
     </View>
   );
 }
@@ -190,10 +278,28 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
+      gap: 16,
+      paddingTop: 36,
     },
     closeButton: {
-      paddingTop: 36,
       paddingHorizontal: 16,
       alignSelf: 'flex-start',
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'space-evenly',
+      paddingHorizontal: 16,
+    },
+    viewNotesLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingVertical: 12,
+    },
+    viewNotesText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.primaryOrange,
     },
   });

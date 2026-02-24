@@ -28,7 +28,12 @@
     "sleepTimer": "Timer de Sono",
     "setSleepTimer": "Definir Timer de Sono",
     "minutes": "{{count}} min",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "note": "Nota",
+    "notesTitle": "Notas",
+    "notesEmpty": "Nenhuma nota ainda. Toque em Nota para adicionar na posição atual.",
+    "notePlaceholder": "Escreva sua nota...",
+    "viewNotes": "Ver notas"
   },
   "settings": {
     "title": "Configurações",

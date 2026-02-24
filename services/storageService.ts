@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audiobook } from '@/types/audiobook';
+import { AudiobookNote } from '@/types/note';
 
 const AUDIOBOOKS_KEY = '@audiobooks';
 const SETTINGS_KEY = '@settings';
+const NOTES_KEY = '@audiobook_notes';
 
 export interface AppSettings {
   defaultPlaybackRate: number;
@@ -65,8 +67,60 @@ export class StorageService {
       const audiobooks = await this.getAudiobooks();
       const filtered = audiobooks.filter((book) => book.id !== id);
       await this.saveAudiobooks(filtered);
+      await this.deleteNotesForAudiobook(id);
     } catch (error) {
       console.error('Failed to delete audiobook:', error);
+    }
+  }
+
+  async getNotes(audiobookId: string): Promise<AudiobookNote[]> {
+    try {
+      const data = await AsyncStorage.getItem(NOTES_KEY);
+      const all: AudiobookNote[] = data ? JSON.parse(data) : [];
+      return all.filter((n) => n.audiobookId === audiobookId).sort((a, b) => a.positionSeconds - b.positionSeconds);
+    } catch (error) {
+      console.error('Failed to get notes:', error);
+      return [];
+    }
+  }
+
+  async addNote(note: Omit<AudiobookNote, 'id' | 'createdAt'>): Promise<AudiobookNote> {
+    try {
+      const data = await AsyncStorage.getItem(NOTES_KEY);
+      const all: AudiobookNote[] = data ? JSON.parse(data) : [];
+      const newNote: AudiobookNote = {
+        ...note,
+        id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        createdAt: Date.now(),
+      };
+      all.push(newNote);
+      await AsyncStorage.setItem(NOTES_KEY, JSON.stringify(all));
+      return newNote;
+    } catch (error) {
+      console.error('Failed to add note:', error);
+      throw error;
+    }
+  }
+
+  async deleteNote(noteId: string): Promise<void> {
+    try {
+      const data = await AsyncStorage.getItem(NOTES_KEY);
+      const all: AudiobookNote[] = data ? JSON.parse(data) : [];
+      const filtered = all.filter((n) => n.id !== noteId);
+      await AsyncStorage.setItem(NOTES_KEY, JSON.stringify(filtered));
+    } catch (error) {
+      console.error('Failed to delete note:', error);
+    }
+  }
+
+  private async deleteNotesForAudiobook(audiobookId: string): Promise<void> {
+    try {
+      const data = await AsyncStorage.getItem(NOTES_KEY);
+      const all: AudiobookNote[] = data ? JSON.parse(data) : [];
+      const filtered = all.filter((n) => n.audiobookId !== audiobookId);
+      await AsyncStorage.setItem(NOTES_KEY, JSON.stringify(filtered));
+    } catch (error) {
+      console.error('Failed to delete notes for audiobook:', error);
     }
   }
 

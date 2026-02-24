@@ -28,7 +28,12 @@
     "sleepTimer": "Sleep Timer",
     "setSleepTimer": "Set Sleep Timer",
     "minutes": "{{count}} min",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "note": "Note",
+    "notesTitle": "Notes",
+    "notesEmpty": "No notes yet. Tap Note to add one at the current position.",
+    "notePlaceholder": "Write your note...",
+    "viewNotes": "View notes"
   },
   "settings": {
     "title": "Settings",

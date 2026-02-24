@@ -12,6 +12,8 @@ type PlayerSecondaryControlsProps = {
   sleepTimerMinutes: number | null;
   onTimerPress: () => void;
   onCancelTimer: () => void;
+  onNotePress: () => void;
+  notesCount: number;
 };
 
 export function PlayerSecondaryControls({
@@ -20,6 +22,8 @@ export function PlayerSecondaryControls({
   sleepTimerMinutes,
   onTimerPress,
   onCancelTimer,
+  onNotePress,
+  notesCount,
 }: PlayerSecondaryControlsProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -37,6 +41,13 @@ export function PlayerSecondaryControls({
       <TouchableOpacity style={styles.button} onPress={onCyclePlaybackRate}>
         <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
         <Text style={styles.buttonText}>{playbackRate}x</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={onNotePress}>
+        <Ionicons name="create-outline" size={20} color={colors.primaryOrange} />
+        <Text style={styles.buttonText}>
+          {notesCount > 0 ? `Notes (${notesCount})` : 'Note'}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
