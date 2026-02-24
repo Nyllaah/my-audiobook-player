@@ -1,3 +1,4 @@
+import { SeekBar } from '@/components/player/SeekBar';
 import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -5,7 +6,6 @@ import { useTheme } from '@/context/ThemeContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { formatTime } from '@/utils/timeFormatter';
 import { Ionicons } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
@@ -58,10 +58,16 @@ export default function PlayerScreen() {
     setSeekPosition(value);
   }, []);
 
-  const handleSeekComplete = useCallback(async (value: number) => {
-    await seekTo(value);
-    setIsSeeking(false);
-  }, [seekTo]);
+  const handleSeekComplete = useCallback(
+    async (value: number) => {
+      const position = Number(value);
+      if (!Number.isFinite(position) || position < 0) return;
+      await seekTo(position);
+      setSeekPosition(position);
+      setIsSeeking(false);
+    },
+    [seekTo]
+  );
 
   const cyclePlaybackRate = useCallback(() => {
     const currentIndex = PLAYBACK_RATES.indexOf(playbackState.playbackRate as typeof PLAYBACK_RATES[number]);
@@ -113,7 +119,8 @@ export default function PlayerScreen() {
   }
 
   const currentPosition = isSeeking ? seekPosition : playbackState.position;
-  const duration = playbackState.duration || 1;
+  const duration = Math.max(1, playbackState.duration || 1);
+  const clampedPosition = Math.max(0, Math.min(currentPosition, duration));
 
   return (
     <View style={styles.container}>
@@ -124,7 +131,7 @@ export default function PlayerScreen() {
           router.back();
         }}
       >
-        <Ionicons name="chevron-down" size={32} color={colors.primaryOrange} />
+        <Ionicons name="chevron-back" size={32} color={colors.primaryOrange} />
       </TouchableOpacity>
 
       <View style={styles.artworkContainer}>
@@ -167,21 +174,21 @@ export default function PlayerScreen() {
       )}
 
       <View style={styles.progressContainer}>
-        <Slider
-          style={styles.slider}
-          value={currentPosition}
-          minimumValue={0}
-          maximumValue={duration}
+        <SeekBar
+          position={clampedPosition}
+          duration={duration}
+          isSeeking={isSeeking}
           minimumTrackTintColor={colors.primaryOrange}
           maximumTrackTintColor={colors.textTertiary}
           thumbTintColor={colors.primaryOrange}
-          onSlidingStart={handleSeekStart}
-          onValueChange={handleSeekChange}
-          onSlidingComplete={handleSeekComplete}
+          onSeekStart={handleSeekStart}
+          onSeekChange={handleSeekChange}
+          onSeekComplete={handleSeekComplete}
+          style={styles.slider}
         />
         <View style={styles.timeContainer}>
-          <Text style={styles.timeText}>{formatTime(currentPosition)}</Text>
-          <Text style={styles.timeText}>-{formatTime(duration - currentPosition)}</Text>
+          <Text style={styles.timeText}>{formatTime(clampedPosition)}</Text>
+          <Text style={styles.timeText}>-{formatTime(duration - clampedPosition)}</Text>
         </View>
       </View>
 
@@ -321,7 +328,7 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) => StyleSh
     backgroundColor: colors.background,
   },
   closeButton: {
-    paddingTop: 32,
+    paddingTop: 36,
     paddingHorizontal: 16,
     alignSelf: 'flex-start',
   },

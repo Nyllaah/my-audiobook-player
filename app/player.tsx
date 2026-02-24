@@ -1,22 +1,11 @@
 import PlayerScreen from '@/screens/PlayerScreen';
 import { useRouter } from 'expo-router';
-import { Modal, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 export default function Player() {
   const router = useRouter();
 
-  if (Platform.OS === 'android') {
-    return (
-      <Modal
-        visible={true}
-        animationType="slide"
-        onRequestClose={() => router.back()}
-        statusBarTranslucent={true}
-      >
-        <PlayerScreen />
-      </Modal>
-    );
-  }
-
+  // On Android, Modal blocks touch events (e.g. slider drag). Use Stack only so the player
+  // stays in the same view hierarchy and PanResponder/touches work.
   return <PlayerScreen />;
 }

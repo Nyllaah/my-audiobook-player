@@ -41,6 +41,8 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
     playbackRate: 1.0,
   });
 
+  const lastSeekRef = useRef<{ position: number; at: number } | null>(null);
+
   useEffect(() => {
     const init = async () => {
       await audioPlayerService.initialize();
@@ -106,9 +108,20 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       const state = await audioPlayerService.getState();
-      const position = await audioPlayerService.getPosition();
+      const rawPosition = await audioPlayerService.getPosition();
       const duration = await audioPlayerService.getDuration();
       const activePartIndex = await audioPlayerService.getActivePartIndex();
+
+      const now = Date.now();
+      const lastSeek = lastSeekRef.current;
+      const position =
+        lastSeek && now - lastSeek.at < 800
+          ? lastSeek.position
+          : rawPosition;
+      if (lastSeek && now - lastSeek.at >= 800) {
+        lastSeekRef.current = null;
+      }
+
       setPlaybackState((prev) => ({
         ...prev,
         isPlaying: state === PlayerState.Playing,
@@ -214,6 +227,10 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
       await audioPlayerService.play();
       setCurrentBook(bookToPlay);
 
+      // Force notification artwork again after play(); native layer often (re)applies
+      // embedded artwork when playback starts, so override it with our stored cover.
+      audioPlayerService.updateNowPlayingMetadataFromAudiobook(bookToPlay);
+
       const storedPosition = bookToPlay.currentPosition ?? 0;
       const storedDuration = bookToPlay.duration ?? 0;
       setPlaybackState((prev) => ({
@@ -242,7 +259,9 @@ export function AudiobookProvider({ children }: { children: React.ReactNode }) {
   }, [saveCurrentProgress]);
 
   const seekTo = useCallback(async (position: number) => {
+    lastSeekRef.current = { position, at: Date.now() };
     await audioPlayerService.seekTo(position);
+    setPlaybackState((prev) => ({ ...prev, position }));
   }, []);
 
   const skipForward = useCallback(async () => {

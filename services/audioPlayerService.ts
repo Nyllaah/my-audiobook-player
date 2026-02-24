@@ -125,6 +125,15 @@ export class AudioPlayerService {
           await TrackPlayer.seekTo(startPosition);
         }
       }
+
+      // Force notification to use our metadata (title, artist, artwork) immediately.
+      // Native layer often shows embedded artwork from the audio file when the track first loads;
+      // this overrides it so the edited/stored cover shows from the first play.
+      await TrackPlayer.updateNowPlayingMetadata({
+        title: audiobook.title,
+        artist: audiobook.author ?? '',
+        artwork: audiobook.artwork,
+      });
     } catch (error) {
       console.error('Failed to load audiobook:', error);
       throw error;
@@ -250,15 +259,55 @@ export class AudioPlayerService {
   }
 
   /**
+   * Updates the notification/now-playing metadata from an audiobook (title, artist, artwork).
+   * Call after load + play so the notification shows our stored/edited cover instead of
+   * embedded artwork from the audio file. Uses a short delay so the override runs after
+   * the native layer has built the notification.
+   */
+  async updateNowPlayingMetadataFromAudiobook(audiobook: Audiobook): Promise<void> {
+    if (!this.isInitialized) return;
+    const artwork = audiobook.artwork;
+    const title = audiobook.title;
+    const artist = audiobook.author ?? '';
+    const apply = async () => {
+      try {
+        const index = await TrackPlayer.getActiveTrackIndex();
+        if (index != null && index !== undefined) {
+          await TrackPlayer.updateMetadataForTrack(index, { artwork, title, artist });
+        }
+        await TrackPlayer.updateNowPlayingMetadata({ title, artist, artwork });
+      } catch (e) {
+        // ignore per-call errors
+      }
+    };
+    try {
+      await apply();
+      setTimeout(() => apply(), 150);
+      setTimeout(() => apply(), 400);
+    } catch (error) {
+      console.error('Failed to update now-playing metadata from audiobook:', error);
+    }
+  }
+
+  /**
    * Updates the artwork for the currently active track (e.g. after user changes cover).
    * Use when the current audiobook's cover was updated so the notification reflects it.
+   * Also calls updateNowPlayingMetadata so the notification refreshes immediately on Android
+   * (updateMetadataForTrack alone often only updates after pause/state change).
    */
   async updateCurrentTrackArtwork(artwork: string | undefined): Promise<void> {
     if (!this.isInitialized) return;
     try {
       const index = await TrackPlayer.getActiveTrackIndex();
-      if (index != null && index !== undefined) {
-        await TrackPlayer.updateMetadataForTrack(index, { artwork });
+      if (index == null || index === undefined) return;
+      await TrackPlayer.updateMetadataForTrack(index, { artwork });
+      const track = await TrackPlayer.getActiveTrack();
+      if (track) {
+        await TrackPlayer.updateNowPlayingMetadata({
+          title: track.title,
+          artist: track.artist ?? '',
+          artwork: artwork ?? track.artwork,
+        });
       }
     } catch (error) {
       console.error('Failed to update track artwork:', error);
@@ -281,7 +330,13 @@ export class AudioPlayerService {
       if (book) {
         const index = await TrackPlayer.getActiveTrackIndex();
         if (index != null && index !== undefined) {
-          await TrackPlayer.updateMetadataForTrack(index, { artwork: book.artwork });
+          const artwork = book.artwork;
+          await TrackPlayer.updateMetadataForTrack(index, { artwork });
+          await TrackPlayer.updateNowPlayingMetadata({
+            title: track.title,
+            artist: track.artist ?? '',
+            artwork: artwork ?? track.artwork,
+          });
         }
       }
     } catch (error) {
