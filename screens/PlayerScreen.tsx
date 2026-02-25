@@ -65,7 +65,8 @@ export default function PlayerScreen() {
     await togglePlayPause();
   }, [togglePlayPause]);
 
-  const { sleepTimer, setSleepTimer, cancelTimer } = useSleepTimer(handleTimerEnd);
+  const { sleepTimerRemainingMs, setSleepTimer, cancelTimer } =
+    useSleepTimer(handleTimerEnd);
 
   const handleSeekStart = useCallback(() => {
     setIsSeeking(true);
@@ -225,7 +226,7 @@ export default function PlayerScreen() {
         <PlayerSecondaryControls
           playbackRate={playbackState.playbackRate}
           onCyclePlaybackRate={cyclePlaybackRate}
-          sleepTimerMinutes={sleepTimer}
+          sleepTimerRemainingMs={sleepTimerRemainingMs}
           onTimerPress={() => setShowTimerDialog(true)}
           onCancelTimer={cancelTimer}
           onNotePress={handleNotePress}

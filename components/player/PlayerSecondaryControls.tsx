@@ -9,17 +9,25 @@ const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0] as const;
 type PlayerSecondaryControlsProps = {
   playbackRate: number;
   onCyclePlaybackRate: () => void;
-  sleepTimerMinutes: number | null;
+  /** Remaining time in ms; null when no sleep timer is set */
+  sleepTimerRemainingMs: number | null;
   onTimerPress: () => void;
   onCancelTimer: () => void;
   onNotePress: () => void;
   notesCount: number;
 };
 
+function formatTimerRemaining(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 export function PlayerSecondaryControls({
   playbackRate,
   onCyclePlaybackRate,
-  sleepTimerMinutes,
+  sleepTimerRemainingMs,
   onTimerPress,
   onCancelTimer,
   onNotePress,
@@ -27,9 +35,10 @@ export function PlayerSecondaryControls({
 }: PlayerSecondaryControlsProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const hasTimer = sleepTimerRemainingMs !== null;
 
   const handleTimerPress = () => {
-    if (sleepTimerMinutes !== null) {
+    if (hasTimer) {
       onCancelTimer();
     } else {
       onTimerPress();
@@ -53,20 +62,20 @@ export function PlayerSecondaryControls({
       <TouchableOpacity
         style={styles.button}
         onPress={handleTimerPress}
-        onLongPress={sleepTimerMinutes !== null ? onCancelTimer : undefined}
+        onLongPress={hasTimer ? onCancelTimer : undefined}
       >
         <Ionicons
           name="timer-outline"
           size={20}
-          color={sleepTimerMinutes !== null ? colors.red : colors.primaryOrange}
+          color={hasTimer ? colors.red : colors.primaryOrange}
         />
         <Text
           style={[
             styles.buttonText,
-            sleepTimerMinutes !== null && styles.timerActive,
+            hasTimer && styles.timerActive,
           ]}
         >
-          {sleepTimerMinutes !== null ? `${sleepTimerMinutes}m` : 'Timer'}
+          {hasTimer ? formatTimerRemaining(sleepTimerRemainingMs!) : 'Timer'}
         </Text>
       </TouchableOpacity>
     </View>
