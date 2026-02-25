@@ -6,6 +6,7 @@ export { NoteEditorModal } from './NoteEditorModal';
 export { NotesListModal } from './NotesListModal';
 export { PlayerArtwork } from './PlayerArtwork';
 export { PlayerChapterButton } from './PlayerChapterButton';
+export { PlayerChapterSection } from './PlayerChapterSection';
 export { PlayerEmptyState } from './PlayerEmptyState';
 export { PlayerPlaybackControls } from './PlayerPlaybackControls';
 export { PlayerProgress } from './PlayerProgress';

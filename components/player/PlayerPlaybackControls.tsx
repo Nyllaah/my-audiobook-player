@@ -1,22 +1,13 @@
 import { DarkColors, LightColors } from '@/constants/colors';
+import { useAudiobook } from '@/context/AudiobookContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-type PlayerPlaybackControlsProps = {
-  isPlaying: boolean;
-  onPlayPause: () => void;
-  onSkipBackward: () => void;
-  onSkipForward: () => void;
-  skipBackwardLabel?: string;
-  skipForwardLabel?: string;
-  playbackRate: number;
-  onCyclePlaybackRate: () => void;
-  sleepTimerRemainingMs: number | null;
-  onTimerPress: () => void;
-  onCancelTimer: () => void;
-};
+import { SleepTimerModal } from './SleepTimerModal';
 
 function formatTimerRemaining(ms: number): string {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
@@ -25,82 +16,112 @@ function formatTimerRemaining(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export function PlayerPlaybackControls({
-  isPlaying,
-  onPlayPause,
-  onSkipBackward,
-  onSkipForward,
-  skipBackwardLabel = '15s',
-  skipForwardLabel = '30s',
-  playbackRate,
-  onCyclePlaybackRate,
-  sleepTimerRemainingMs,
-  onTimerPress,
-  onCancelTimer,
-}: PlayerPlaybackControlsProps) {
+const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0] as const;
+
+export function PlayerPlaybackControls() {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useLanguage();
+  const { skipForwardSeconds, skipBackwardSeconds } = useSettings();
+  const {
+    playbackState,
+    togglePlayPause,
+    skipForward,
+    skipBackward,
+    setPlaybackRate,
+  } = useAudiobook();
+
+  const handleTimerEnd = useCallback(async () => {
+    await togglePlayPause();
+  }, [togglePlayPause]);
+
+  const { sleepTimerRemainingMs, setSleepTimer, cancelTimer } =
+    useSleepTimer(handleTimerEnd);
+
+  const [showTimerDialog, setShowTimerDialog] = useState(false);
   const hasTimer = sleepTimerRemainingMs !== null;
+
+  const cyclePlaybackRate = useCallback(() => {
+    const currentIndex = PLAYBACK_RATES.indexOf(
+      playbackState.playbackRate as (typeof PLAYBACK_RATES)[number]
+    );
+    const nextIndex = (currentIndex + 1) % PLAYBACK_RATES.length;
+    setPlaybackRate(PLAYBACK_RATES[nextIndex]);
+  }, [playbackState.playbackRate, setPlaybackRate]);
 
   const handleTimerPress = () => {
     if (hasTimer) {
-      onCancelTimer();
+      cancelTimer();
     } else {
-      onTimerPress();
+      setShowTimerDialog(true);
     }
   };
 
+  const handleSetTimer = useCallback((minutes: number) => {
+    setSleepTimer(minutes);
+    setShowTimerDialog(false);
+  }, [setSleepTimer]);
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={onCyclePlaybackRate}>
-        {playbackRate > 1 ? (
-          <Text style={styles.buttonText}>{playbackRate}x</Text>
-        ) : (
-          <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
-        )}
-      </TouchableOpacity>
+    <>
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.button} onPress={cyclePlaybackRate}>
+          {playbackState.playbackRate > 1 ? (
+            <Text style={styles.buttonText}>{playbackState.playbackRate}x</Text>
+          ) : (
+            <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.controlButton} onPress={onSkipBackward}>
-        <Ionicons name="play-back" size={32} color={colors.primaryOrange} />
-        <Text style={styles.skipText}>{skipBackwardLabel}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.controlButton} onPress={skipBackward}>
+          <Ionicons name="play-back" size={32} color={colors.primaryOrange} />
+          <Text style={styles.skipText}>{skipBackwardSeconds}s</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.playButton} onPress={onPlayPause}>
-        <Ionicons
-          name={isPlaying ? 'pause' : 'play'}
-          size={32}
-          color={colors.white}
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.controlButton} onPress={onSkipForward}>
-        <Ionicons name="play-forward" size={32} color={colors.primaryOrange} />
-        <Text style={styles.skipText}>{skipForwardLabel}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleTimerPress}
-        onLongPress={hasTimer ? onCancelTimer : undefined}
-      >
-        {hasTimer ? (
-          <Text
-          style={[
-            styles.buttonText,
-            hasTimer && styles.timerActive,
-          ]}
-        >
-          {hasTimer ? formatTimerRemaining(sleepTimerRemainingMs!) : null}
-        </Text>
-        ) : (
+        <TouchableOpacity style={styles.playButton} onPress={togglePlayPause}>
           <Ionicons
-            name="timer-outline"
-            size={20}
-            color={colors.primaryOrange}
+            name={playbackState.isPlaying ? 'pause' : 'play'}
+            size={32}
+            color={colors.white}
           />
-        )}
-      </TouchableOpacity>
-    </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.controlButton} onPress={skipForward}>
+          <Ionicons name="play-forward" size={32} color={colors.primaryOrange} />
+          <Text style={styles.skipText}>{skipForwardSeconds}s</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleTimerPress}
+          onLongPress={hasTimer ? cancelTimer : undefined}
+        >
+          {hasTimer ? (
+            <Text
+              style={[styles.buttonText, hasTimer && styles.timerActive]}
+            >
+              {formatTimerRemaining(sleepTimerRemainingMs!)}
+            </Text>
+          ) : (
+            <Ionicons
+              name="timer-outline"
+              size={20}
+              color={colors.primaryOrange}
+            />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <SleepTimerModal
+        visible={showTimerDialog}
+        title={t('player.sleepTimer')}
+        subtitle="Playback will pause after:"
+        cancelLabel={t('common.cancel')}
+        onSelectMinutes={handleSetTimer}
+        onClose={() => setShowTimerDialog(false)}
+      />
+    </>
   );
 }
 

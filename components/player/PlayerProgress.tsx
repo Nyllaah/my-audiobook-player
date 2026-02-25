@@ -1,34 +1,46 @@
 import { SeekBar } from '@/components/player/SeekBar';
 import { DarkColors, LightColors } from '@/constants/colors';
+import { useAudiobook } from '@/context/AudiobookContext';
 import { useTheme } from '@/context/ThemeContext';
 import { formatTime } from '@/utils/timeFormatter';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-type PlayerProgressProps = {
-  position: number;
-  duration: number;
-  isSeeking: boolean;
-  onSeekStart: () => void;
-  onSeekChange: (value: number) => void;
-  onSeekComplete: (value: number) => void;
-};
-
-export function PlayerProgress({
-  position,
-  duration,
-  isSeeking,
-  onSeekStart,
-  onSeekChange,
-  onSeekComplete,
-}: PlayerProgressProps) {
+export function PlayerProgress() {
   const { colors } = useTheme();
+  const { playbackState, seekTo } = useAudiobook();
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekPosition, setSeekPosition] = useState(0);
+
+  const duration = Math.max(1, playbackState.duration || 1);
+  const position = isSeeking ? seekPosition : playbackState.position;
+  const clampedPosition = Math.max(0, Math.min(position, duration));
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const onSeekStart = useCallback(() => {
+    setIsSeeking(true);
+    setSeekPosition(playbackState.position);
+  }, [playbackState.position]);
+
+  const onSeekChange = useCallback((value: number) => {
+    setSeekPosition(value);
+  }, []);
+
+  const onSeekComplete = useCallback(
+    async (value: number) => {
+      const pos = Number(value);
+      if (!Number.isFinite(pos) || pos < 0) return;
+      await seekTo(pos);
+      setSeekPosition(pos);
+      setIsSeeking(false);
+    },
+    [seekTo]
+  );
 
   return (
     <View style={styles.container}>
       <SeekBar
-        position={position}
+        position={clampedPosition}
         duration={duration}
         isSeeking={isSeeking}
         minimumTrackTintColor={colors.primaryOrange}
@@ -40,8 +52,8 @@ export function PlayerProgress({
         style={styles.slider}
       />
       <View style={styles.timeRow}>
-        <Text style={styles.timeText}>{formatTime(position)}</Text>
-        <Text style={styles.timeText}>-{formatTime(duration - position)}</Text>
+        <Text style={styles.timeText}>{formatTime(clampedPosition)}</Text>
+        <Text style={styles.timeText}>-{formatTime(duration - clampedPosition)}</Text>
       </View>
     </View>
   );
