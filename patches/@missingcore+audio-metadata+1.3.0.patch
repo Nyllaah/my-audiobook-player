@@ -1,0 +1,13 @@
+diff --git a/node_modules/@missingcore/audio-metadata/src/libs/expo-file-system.ts b/node_modules/@missingcore/audio-metadata/src/libs/expo-file-system.ts
+index 313d63e..8055967 100644
+--- a/node_modules/@missingcore/audio-metadata/src/libs/expo-file-system.ts
++++ b/node_modules/@missingcore/audio-metadata/src/libs/expo-file-system.ts
+@@ -57,7 +57,7 @@ type FileSystem = {
+ let ExpoFileSystem: FileSystem | undefined;
+ 
+ try {
+-  ExpoFileSystem = require('expo-file-system');
++  ExpoFileSystem = require('expo-file-system/legacy');
+ } catch {}
+ 
+ export default ExpoFileSystem;

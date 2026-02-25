@@ -33,7 +33,13 @@
     "notesTitle": "Notes",
     "notesEmpty": "No notes yet. Tap Note to add one at the current position.",
     "notePlaceholder": "Write your note...",
-    "viewNotes": "View notes"
+    "viewNotes": "View notes",
+    "bookmark": "Bookmark",
+    "viewBookmarks": "View bookmarks",
+    "bookmarksTitle": "Bookmarks",
+    "bookmarksEmpty": "No bookmarks yet. Tap the bookmark button to add one at the current position.",
+    "addBookmark": "Add",
+    "bookmarkLabelPlaceholder": "Optional label..."
   },
   "settings": {
     "title": "Settings",

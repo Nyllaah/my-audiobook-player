@@ -4,46 +4,21 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0] as const;
-
 type PlayerSecondaryControlsProps = {
-  playbackRate: number;
-  onCyclePlaybackRate: () => void;
-  /** Remaining time in ms; null when no sleep timer is set */
-  sleepTimerRemainingMs: number | null;
-  onTimerPress: () => void;
-  onCancelTimer: () => void;
   onNotePress: () => void;
   notesCount: number;
+  onBookmarkPress: () => void;
+  bookmarksCount: number;
 };
 
-function formatTimerRemaining(ms: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
 export function PlayerSecondaryControls({
-  playbackRate,
-  onCyclePlaybackRate,
-  sleepTimerRemainingMs,
-  onTimerPress,
-  onCancelTimer,
   onNotePress,
   notesCount,
+  onBookmarkPress,
+  bookmarksCount,
 }: PlayerSecondaryControlsProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const hasTimer = sleepTimerRemainingMs !== null;
-
-  const handleTimerPress = () => {
-    if (hasTimer) {
-      onCancelTimer();
-    } else {
-      onTimerPress();
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -54,28 +29,10 @@ export function PlayerSecondaryControls({
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={onCyclePlaybackRate}>
-        <Ionicons name="speedometer-outline" size={20} color={colors.primaryOrange} />
-        <Text style={styles.buttonText}>{playbackRate}x</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleTimerPress}
-        onLongPress={hasTimer ? onCancelTimer : undefined}
-      >
-        <Ionicons
-          name="timer-outline"
-          size={20}
-          color={hasTimer ? colors.red : colors.primaryOrange}
-        />
-        <Text
-          style={[
-            styles.buttonText,
-            hasTimer && styles.timerActive,
-          ]}
-        >
-          {hasTimer ? formatTimerRemaining(sleepTimerRemainingMs!) : 'Timer'}
+      <TouchableOpacity style={styles.button} onPress={onBookmarkPress}>
+        <Ionicons name="bookmark-outline" size={20} color={colors.primaryOrange} />
+        <Text style={styles.buttonText}>
+          {bookmarksCount > 0 ? `(${bookmarksCount})` : ''}
         </Text>
       </TouchableOpacity>
     </View>
@@ -98,7 +55,7 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       paddingVertical: 10,
       backgroundColor: colors.backgroundLight,
       borderRadius: 20,
-      minWidth: 100,
+      minWidth: 75,
       justifyContent: 'center',
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 1 },

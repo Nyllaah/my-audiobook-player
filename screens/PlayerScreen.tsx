@@ -9,7 +9,7 @@ import {
   PlayerProgress,
   PlayerSecondaryControls,
   PlayerTrackInfo,
-  SleepTimerModal,
+  SleepTimerModal
 } from '@/components/player';
 import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
@@ -18,6 +18,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { storageService } from '@/services/storageService';
+import { AudiobookBookmark } from '@/types/bookmark';
 import { AudiobookNote } from '@/types/note';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -50,6 +51,9 @@ export default function PlayerScreen() {
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [showNotesList, setShowNotesList] = useState(false);
   const [notes, setNotes] = useState<AudiobookNote[]>([]);
+  const [showAddBookmark, setShowAddBookmark] = useState(false);
+  const [showBookmarksList, setShowBookmarksList] = useState(false);
+  const [bookmarks, setBookmarks] = useState<AudiobookBookmark[]>([]);
 
   const loadNotes = useCallback(async () => {
     if (!currentBook) return;
@@ -57,9 +61,19 @@ export default function PlayerScreen() {
     setNotes(list);
   }, [currentBook]);
 
+  const loadBookmarks = useCallback(async () => {
+    if (!currentBook) return;
+    const list = await storageService.getBookmarks(currentBook.id);
+    setBookmarks(list);
+  }, [currentBook]);
+
   useEffect(() => {
     if (currentBook) loadNotes();
   }, [currentBook, loadNotes]);
+
+  useEffect(() => {
+    if (currentBook) loadBookmarks();
+  }, [currentBook, loadBookmarks]);
 
   const handleTimerEnd = useCallback(async () => {
     await togglePlayPause();
@@ -221,16 +235,18 @@ export default function PlayerScreen() {
           onSkipForward={skipForward}
           skipBackwardLabel={`${skipBackwardSeconds}s`}
           skipForwardLabel={`${skipForwardSeconds}s`}
-        />
-
-        <PlayerSecondaryControls
           playbackRate={playbackState.playbackRate}
           onCyclePlaybackRate={cyclePlaybackRate}
           sleepTimerRemainingMs={sleepTimerRemainingMs}
           onTimerPress={() => setShowTimerDialog(true)}
           onCancelTimer={cancelTimer}
+        />
+
+        <PlayerSecondaryControls
           onNotePress={handleNotePress}
           notesCount={notes.length}
+          onBookmarkPress={() => setShowBookmarksList(true)}
+          bookmarksCount={bookmarks.length}
         />
 
         <TouchableOpacity

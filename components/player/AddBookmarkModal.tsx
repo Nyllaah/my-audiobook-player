@@ -13,44 +13,41 @@ import {
   View,
 } from 'react-native';
 
-type NoteEditorModalProps = {
+type AddBookmarkModalProps = {
   visible: boolean;
   positionSeconds: number;
-  saveLabel: string;
+  addLabel: string;
   cancelLabel: string;
   placeholder?: string;
-  viewNotesLabel?: string;
-  onSave: (text: string) => void;
+  viewBookmarksLabel?: string;
+  onAdd: (label?: string) => void;
   onClose: () => void;
-  onViewNotes?: () => void;
+  onViewBookmarks?: () => void;
 };
 
-export function NoteEditorModal({
+export function AddBookmarkModal({
   visible,
   positionSeconds,
-  saveLabel,
+  addLabel,
   cancelLabel,
-  placeholder = 'Write your note...',
-  viewNotesLabel,
-  onSave,
+  placeholder = 'Optional label...',
+  viewBookmarksLabel,
+  onAdd,
   onClose,
-  onViewNotes,
-}: NoteEditorModalProps) {
+  onViewBookmarks,
+}: AddBookmarkModalProps) {
   const { colors } = useTheme();
-  const [text, setText] = useState('');
+  const [label, setLabel] = useState('');
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const handleSave = () => {
-    const trimmed = text.trim();
-    if (trimmed) {
-      onSave(trimmed);
-      setText('');
-    }
+  const handleAdd = () => {
+    onAdd(label.trim() || undefined);
+    setLabel('');
     onClose();
   };
 
   const handleClose = () => {
-    setText('');
+    setLabel('');
     onClose();
   };
 
@@ -63,36 +60,30 @@ export function NoteEditorModal({
     >
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={'padding'}
+        behavior="padding"
         keyboardVerticalOffset={24}
       >
         <View style={styles.dialog}>
           <Text style={styles.positionLabel}>{formatTime(positionSeconds)}</Text>
           <TextInput
             style={styles.input}
-            value={text}
-            onChangeText={setText}
+            value={label}
+            onChangeText={setLabel}
             placeholder={placeholder}
             placeholderTextColor={colors.placeholder}
-            multiline
-            autoFocus
-            maxLength={2000}
+            maxLength={100}
           />
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
               <Text style={styles.cancelText}>{cancelLabel}</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.saveButton, !text.trim() && styles.saveButtonDisabled]}
-              onPress={handleSave}
-              disabled={!text.trim()}
-            >
-              <Text style={styles.saveText}>{saveLabel}</Text>
+            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+              <Text style={styles.addText}>{addLabel}</Text>
             </TouchableOpacity>
           </View>
-          {viewNotesLabel && onViewNotes ? (
-            <TouchableOpacity style={styles.viewLink} onPress={onViewNotes}>
-              <Text style={styles.viewLinkText}>{viewNotesLabel}</Text>
+          {viewBookmarksLabel && onViewBookmarks ? (
+            <TouchableOpacity style={styles.viewLink} onPress={onViewBookmarks}>
+              <Text style={styles.viewLinkText}>{viewBookmarksLabel}</Text>
               <Ionicons name="chevron-forward" size={18} color={colors.primaryOrange} />
             </TouchableOpacity>
           ) : null}
@@ -128,8 +119,6 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       padding: 16,
       fontSize: 16,
       color: colors.text,
-      minHeight: 120,
-      textAlignVertical: 'top',
       marginBottom: 20,
     },
     actions: {
@@ -148,16 +137,13 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       fontSize: 16,
       fontWeight: '600',
     },
-    saveButton: {
+    addButton: {
       paddingVertical: 12,
       paddingHorizontal: 20,
       borderRadius: 8,
       backgroundColor: colors.primaryOrange,
     },
-    saveButtonDisabled: {
-      opacity: 0.5,
-    },
-    saveText: {
+    addText: {
       color: colors.white,
       fontSize: 16,
       fontWeight: '600',

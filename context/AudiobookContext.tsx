@@ -7,7 +7,6 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { AppState, AppStateStatus } from 'react-native';
 import TrackPlayer, { Event, State } from 'react-native-track-player';
 
-/** Prevents hanging when TrackPlayer service is unbound (e.g. after notification cleared). */
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -40,7 +39,6 @@ const AudiobookContext = createContext<AudiobookContextType | undefined>(undefin
 
 type AudiobookProviderProps = {
   children: React.ReactNode;
-  /** Called when the user clears the notification or stops from it; use to e.g. go back to library. */
   onNotificationCleared?: () => void;
 };
 
@@ -69,8 +67,6 @@ export function AudiobookProvider({ children, onNotificationCleared }: Audiobook
       setIsLoading(false);
       await audioPlayerService.syncCurrentTrackArtworkFromAudiobooks(books);
 
-      // If there is already an active track (e.g. app opened from notification),
-      // hydrate the currentBook and playback state from the active TrackPlayer track.
       try {
         const track = await TrackPlayer.getActiveTrack();
         if (track?.id) {
@@ -176,7 +172,6 @@ export function AudiobookProvider({ children, onNotificationCleared }: Audiobook
     return () => subscription.remove();
   }, [goBackToLibrary]);
 
-  // When user clears notification or taps Stop: go back to library and clear player state
   useEffect(() => {
     const sub = TrackPlayer.addEventListener(Event.PlaybackState, (payload: { state: State }) => {
       if (payload.state === State.None || payload.state === State.Stopped) {
@@ -252,7 +247,6 @@ export function AudiobookProvider({ children, onNotificationCleared }: Audiobook
           );
         }
       } catch (err) {
-        // Timeout or error when service unbound (e.g. notification cleared); don't freeze UI
         setPlaybackState((prev) => ({ ...prev, isPlaying: false }));
       }
     }, TIMING.PLAYBACK_STATE_UPDATE_INTERVAL);

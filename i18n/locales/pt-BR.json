@@ -33,7 +33,13 @@
     "notesTitle": "Notas",
     "notesEmpty": "Nenhuma nota ainda. Toque em Nota para adicionar na posição atual.",
     "notePlaceholder": "Escreva sua nota...",
-    "viewNotes": "Ver notas"
+    "viewNotes": "Ver notas",
+    "bookmark": "Marcador",
+    "viewBookmarks": "Ver marcadores",
+    "bookmarksTitle": "Marcadores",
+    "bookmarksEmpty": "Nenhum marcador ainda. Toque no botão de marcador para adicionar na posição atual.",
+    "addBookmark": "Adicionar",
+    "bookmarkLabelPlaceholder": "Rótulo opcional..."
   },
   "settings": {
     "title": "Configurações",

@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audiobook } from '@/types/audiobook';
+import { AudiobookBookmark } from '@/types/bookmark';
 import { AudiobookNote } from '@/types/note';
 
 const AUDIOBOOKS_KEY = '@audiobooks';
 const SETTINGS_KEY = '@settings';
 const NOTES_KEY = '@audiobook_notes';
+const BOOKMARKS_KEY = '@audiobook_bookmarks';
 
 export interface AppSettings {
   defaultPlaybackRate: number;
@@ -68,6 +70,7 @@ export class StorageService {
       const filtered = audiobooks.filter((book) => book.id !== id);
       await this.saveAudiobooks(filtered);
       await this.deleteNotesForAudiobook(id);
+      await this.deleteBookmarksForAudiobook(id);
     } catch (error) {
       console.error('Failed to delete audiobook:', error);
     }
@@ -121,6 +124,57 @@ export class StorageService {
       await AsyncStorage.setItem(NOTES_KEY, JSON.stringify(filtered));
     } catch (error) {
       console.error('Failed to delete notes for audiobook:', error);
+    }
+  }
+
+  async getBookmarks(audiobookId: string): Promise<AudiobookBookmark[]> {
+    try {
+      const data = await AsyncStorage.getItem(BOOKMARKS_KEY);
+      const all: AudiobookBookmark[] = data ? JSON.parse(data) : [];
+      return all.filter((b) => b.audiobookId === audiobookId).sort((a, b) => a.positionSeconds - b.positionSeconds);
+    } catch (error) {
+      console.error('Failed to get bookmarks:', error);
+      return [];
+    }
+  }
+
+  async addBookmark(bookmark: Omit<AudiobookBookmark, 'id' | 'createdAt'>): Promise<AudiobookBookmark> {
+    try {
+      const data = await AsyncStorage.getItem(BOOKMARKS_KEY);
+      const all: AudiobookBookmark[] = data ? JSON.parse(data) : [];
+      const newBookmark: AudiobookBookmark = {
+        ...bookmark,
+        id: `bookmark_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        createdAt: Date.now(),
+      };
+      all.push(newBookmark);
+      await AsyncStorage.setItem(BOOKMARKS_KEY, JSON.stringify(all));
+      return newBookmark;
+    } catch (error) {
+      console.error('Failed to add bookmark:', error);
+      throw error;
+    }
+  }
+
+  async deleteBookmark(bookmarkId: string): Promise<void> {
+    try {
+      const data = await AsyncStorage.getItem(BOOKMARKS_KEY);
+      const all: AudiobookBookmark[] = data ? JSON.parse(data) : [];
+      const filtered = all.filter((b) => b.id !== bookmarkId);
+      await AsyncStorage.setItem(BOOKMARKS_KEY, JSON.stringify(filtered));
+    } catch (error) {
+      console.error('Failed to delete bookmark:', error);
+    }
+  }
+
+  private async deleteBookmarksForAudiobook(audiobookId: string): Promise<void> {
+    try {
+      const data = await AsyncStorage.getItem(BOOKMARKS_KEY);
+      const all: AudiobookBookmark[] = data ? JSON.parse(data) : [];
+      const filtered = all.filter((b) => b.audiobookId !== audiobookId);
+      await AsyncStorage.setItem(BOOKMARKS_KEY, JSON.stringify(filtered));
+    } catch (error) {
+      console.error('Failed to delete bookmarks for audiobook:', error);
     }
   }
 

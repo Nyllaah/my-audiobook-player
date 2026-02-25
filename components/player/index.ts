@@ -1,3 +1,5 @@
+export { AddBookmarkModal } from './AddBookmarkModal';
+export { BookmarkListModal } from './BookmarkListModal';
 export { ChapterListModal } from './ChapterListModal';
 export { MiniPlayer } from './MiniPlayer';
 export { NoteEditorModal } from './NoteEditorModal';
