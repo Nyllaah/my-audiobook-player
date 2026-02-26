@@ -7,7 +7,7 @@ import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 export default function LibraryScreen() {
   const { colors } = useTheme();
@@ -19,7 +19,7 @@ export default function LibraryScreen() {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <Text style={styles.loadingTitle}>Loading...</Text>
+        <ActivityIndicator size="large" color={colors.primaryOrange} />
       </View>
     );
   }
@@ -41,7 +41,7 @@ export default function LibraryScreen() {
   );
 }
 
-const createStyles = (colors: { background: string; textSecondary: string }) =>
+const createStyles = (colors: { background: string }) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -50,11 +50,5 @@ const createStyles = (colors: { background: string; textSecondary: string }) =>
     loadingContainer: {
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    loadingTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 8,
-      color: colors.textSecondary,
     },
   });
