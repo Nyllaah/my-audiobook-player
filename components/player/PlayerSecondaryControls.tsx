@@ -4,7 +4,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { storageService } from '@/services/storageService';
 import { AudiobookBookmark } from '@/types/bookmark';
-import { AudiobookNote } from '@/types/note';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -15,8 +14,6 @@ import {
 } from 'react-native';
 import { AddBookmarkModal } from './AddBookmarkModal';
 import { BookmarkListModal } from './BookmarkListModal';
-import { NoteEditorModal } from './NoteEditorModal';
-import { NotesListModal } from './NotesListModal';
 
 export function PlayerSecondaryControls() {
   const { colors } = useTheme();
@@ -28,18 +25,9 @@ export function PlayerSecondaryControls() {
     togglePlayPause,
   } = useAudiobook();
 
-  const [showNoteEditor, setShowNoteEditor] = useState(false);
-  const [showNotesList, setShowNotesList] = useState(false);
   const [showAddBookmark, setShowAddBookmark] = useState(false);
   const [showBookmarksList, setShowBookmarksList] = useState(false);
-  const [notes, setNotes] = useState<AudiobookNote[]>([]);
   const [bookmarks, setBookmarks] = useState<AudiobookBookmark[]>([]);
-
-  const loadNotes = useCallback(async () => {
-    if (!currentBook) return;
-    const list = await storageService.getNotes(currentBook.id);
-    setNotes(list);
-  }, [currentBook]);
 
   const loadBookmarks = useCallback(async () => {
     if (!currentBook) return;
@@ -48,56 +36,21 @@ export function PlayerSecondaryControls() {
   }, [currentBook]);
 
   useEffect(() => {
-    if (currentBook) loadNotes();
-  }, [currentBook, loadNotes]);
-
-  useEffect(() => {
     if (currentBook) loadBookmarks();
   }, [currentBook, loadBookmarks]);
 
-  const handleNotePress = useCallback(async () => {
+  const handleBookmarkPress = useCallback(async () => {
     if (playbackState.isPlaying) await togglePlayPause();
-    setShowNoteEditor(true);
+    setShowAddBookmark(true);
   }, [playbackState.isPlaying, togglePlayPause]);
 
-  const handleBookmarkPress = useCallback(() => {
-    setShowAddBookmark(true);
-  }, []);
-
-  const handleSaveNote = useCallback(
+  const handleSaveBookmark = useCallback(
     async (text: string) => {
-      if (!currentBook) return;
-      await storageService.addNote({
-        audiobookId: currentBook.id,
-        positionSeconds: Math.floor(playbackState.position),
-        text,
-      });
-      setShowNoteEditor(false);
-      await loadNotes();
-    },
-    [currentBook, playbackState.position, loadNotes]
-  );
-
-  const handleSeekToNote = useCallback(
-    async (positionSeconds: number) => {
-      await seekTo(positionSeconds);
-      setShowNotesList(false);
-    },
-    [seekTo]
-  );
-
-  const handleDeleteNote = useCallback(async (noteId: string) => {
-    await storageService.deleteNote(noteId);
-    setNotes((prev) => prev.filter((n) => n.id !== noteId));
-  }, []);
-
-  const handleAddBookmark = useCallback(
-    async (label?: string) => {
       if (!currentBook) return;
       await storageService.addBookmark({
         audiobookId: currentBook.id,
         positionSeconds: Math.floor(playbackState.position),
-        label,
+        text,
       });
       setShowAddBookmark(false);
       await loadBookmarks();
@@ -125,13 +78,6 @@ export function PlayerSecondaryControls() {
   return (
     <>
       <View style={styles.container}>
-        <TouchableOpacity style={styles.button} onPress={handleNotePress}>
-          <Ionicons name="create-outline" size={20} color={colors.primaryOrange} />
-          <Text style={styles.buttonText}>
-            {notes.length > 0 ? `(${notes.length})` : ''}
-          </Text>
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.button} onPress={handleBookmarkPress}>
           <Ionicons name="bookmark-outline" size={20} color={colors.primaryOrange} />
           <Text style={styles.buttonText}>
@@ -141,48 +87,21 @@ export function PlayerSecondaryControls() {
       </View>
 
       <TouchableOpacity
-        style={styles.viewNotesLink}
-        onPress={() => setShowNotesList(true)}
+        style={styles.viewBookmarksLink}
+        onPress={() => setShowBookmarksList(true)}
       >
-        <Text style={styles.viewNotesText}>{t('player.viewNotes')}</Text>
+        <Text style={styles.viewBookmarksText}>{t('player.viewBookmarks')}</Text>
         <Ionicons name="chevron-forward" size={18} color={colors.primaryOrange} />
       </TouchableOpacity>
-
-      <NoteEditorModal
-        visible={showNoteEditor}
-        positionSeconds={Math.floor(playbackState.position)}
-        saveLabel={t('common.save')}
-        cancelLabel={t('common.cancel')}
-        placeholder={t('player.notePlaceholder')}
-        viewNotesLabel={t('player.viewNotes')}
-        onSave={handleSaveNote}
-        onClose={() => setShowNoteEditor(false)}
-        onViewNotes={() => {
-          setShowNoteEditor(false);
-          setShowNotesList(true);
-        }}
-      />
-
-      <NotesListModal
-        visible={showNotesList}
-        notes={notes}
-        title={t('player.notesTitle')}
-        emptyMessage={t('player.notesEmpty')}
-        deleteLabel={t('common.delete')}
-        closeLabel={t('common.close')}
-        onSeekToPosition={handleSeekToNote}
-        onDeleteNote={handleDeleteNote}
-        onClose={() => setShowNotesList(false)}
-      />
 
       <AddBookmarkModal
         visible={showAddBookmark}
         positionSeconds={Math.floor(playbackState.position)}
-        addLabel={t('player.addBookmark')}
+        saveLabel={t('common.save')}
         cancelLabel={t('common.cancel')}
-        placeholder={t('player.bookmarkLabelPlaceholder')}
+        placeholder={t('player.bookmarkPlaceholder')}
         viewBookmarksLabel={t('player.viewBookmarks')}
-        onAdd={handleAddBookmark}
+        onSave={handleSaveBookmark}
         onClose={() => setShowAddBookmark(false)}
         onViewBookmarks={() => {
           setShowAddBookmark(false);
@@ -232,13 +151,13 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       fontWeight: '600',
       color: colors.primaryOrange,
     },
-    viewNotesLink: {
+    viewBookmarksLink: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
     },
-    viewNotesText: {
+    viewBookmarksText: {
       fontSize: 15,
       fontWeight: '600',
       color: colors.primaryOrange,

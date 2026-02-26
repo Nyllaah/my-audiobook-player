@@ -1,8 +1,8 @@
 import { DarkColors, LightColors } from '@/constants/colors';
 import { useTheme } from '@/context/ThemeContext';
 import { formatTime } from '@/utils/timeFormatter';
-import React, { useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -16,11 +16,11 @@ import {
 type AddBookmarkModalProps = {
   visible: boolean;
   positionSeconds: number;
-  addLabel: string;
+  saveLabel: string;
   cancelLabel: string;
   placeholder?: string;
   viewBookmarksLabel?: string;
-  onAdd: (label?: string) => void;
+  onSave: (text: string) => void;
   onClose: () => void;
   onViewBookmarks?: () => void;
 };
@@ -28,26 +28,29 @@ type AddBookmarkModalProps = {
 export function AddBookmarkModal({
   visible,
   positionSeconds,
-  addLabel,
+  saveLabel,
   cancelLabel,
   placeholder = 'Optional label...',
   viewBookmarksLabel,
-  onAdd,
+  onSave,
   onClose,
   onViewBookmarks,
 }: AddBookmarkModalProps) {
   const { colors } = useTheme();
-  const [label, setLabel] = useState('');
+  const [text, setText] = useState('');
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const handleAdd = () => {
-    onAdd(label.trim() || undefined);
-    setLabel('');
+  const handleSave = () => {
+    const trimmed = text.trim();
+    if (trimmed) {
+      onSave(trimmed);
+      setText('');
+    }
     onClose();
   };
 
   const handleClose = () => {
-    setLabel('');
+    setText('');
     onClose();
   };
 
@@ -67,18 +70,24 @@ export function AddBookmarkModal({
           <Text style={styles.positionLabel}>{formatTime(positionSeconds)}</Text>
           <TextInput
             style={styles.input}
-            value={label}
-            onChangeText={setLabel}
+            value={text}
+            onChangeText={setText}
             placeholder={placeholder}
             placeholderTextColor={colors.placeholder}
-            maxLength={100}
+            multiline
+            autoFocus
+            maxLength={2000}
           />
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
               <Text style={styles.cancelText}>{cancelLabel}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-              <Text style={styles.addText}>{addLabel}</Text>
+            <TouchableOpacity
+              style={[styles.saveButton, !text.trim() && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={!text.trim()}
+            >
+              <Text style={styles.saveText}>{saveLabel}</Text>
             </TouchableOpacity>
           </View>
           {viewBookmarksLabel && onViewBookmarks ? (
@@ -119,6 +128,8 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       padding: 16,
       fontSize: 16,
       color: colors.text,
+      minHeight: 120,
+      textAlignVertical: 'top',
       marginBottom: 20,
     },
     actions: {
@@ -137,13 +148,16 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
       fontSize: 16,
       fontWeight: '600',
     },
-    addButton: {
+    saveButton: {
       paddingVertical: 12,
       paddingHorizontal: 20,
       borderRadius: 8,
       backgroundColor: colors.primaryOrange,
     },
-    addText: {
+    saveButtonDisabled: {
+      opacity: 0.5,
+    },
+    saveText: {
       color: colors.white,
       fontSize: 16,
       fontWeight: '600',

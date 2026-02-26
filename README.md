@@ -1,6 +1,6 @@
 # 📚 Narria – Audiobook Player
 
-A beautiful, feature-rich audiobook player built with React Native and Expo. Enjoy your favorite audiobooks with an intuitive iOS-inspired interface, dark mode, notes, sleep timer, and multi-language support.
+A beautiful, feature-rich audiobook player built with React Native and Expo. Enjoy your favorite audiobooks with an intuitive iOS-inspired interface, dark mode, bookmarks, sleep timer, and multi-language support.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020.svg?logo=expo)
@@ -24,8 +24,8 @@ A beautiful, feature-rich audiobook player built with React Native and Expo. Enj
 - **Library view** – List with cover thumbnails and quick actions
 - **Edit or delete** – Long-press or menu for each book
 
-### 📝 Notes & Sleep
-- **In-book notes** – Add notes at the current position; view and jump from notes list
+### 📑 Bookmarks & Sleep
+- **Bookmarks** – Add a bookmark at the current position (with optional label); view and jump from bookmarks list
 - **Sleep timer** – Set a countdown to pause playback (e.g. 15, 30, 45, 60 min)
 
 ### ⚙️ Customization
@@ -92,7 +92,7 @@ my-audiobook-player/
 │   ├── player/                   # Player UI (artwork, controls, seek bar, modals)
 │   │   ├── MiniPlayer.tsx
 │   │   ├── SleepTimerModal.tsx
-│   │   ├── NoteEditorModal.tsx, NotesListModal.tsx
+│   │   ├── AddBookmarkModal.tsx, BookmarkListModal.tsx
 │   │   ├── ChapterListModal.tsx
 │   │   └── ...
 │   ├── library/                  # Library UI (list, import, edit, actions)
@@ -111,7 +111,7 @@ my-audiobook-player/
 ├── services/
 │   ├── audioPlayerService.ts     # react-native-track-player setup
 │   ├── playbackService.ts        # Background/notification media controls
-│   └── storageService.ts         # Audiobooks, progress, notes (AsyncStorage)
+│   └── storageService.ts         # Audiobooks, progress, bookmarks (AsyncStorage)
 ├── hooks/
 │   ├── useSleepTimer.ts
 │   └── use-theme-color.ts
@@ -128,7 +128,7 @@ my-audiobook-player/
 │       └── pt-BR.json
 ├── types/
 │   ├── audiobook.ts
-│   └── note.ts
+│   └── bookmark.ts
 ├── constants/
 │   ├── colors.ts
 │   ├── storageKeys.ts
@@ -144,7 +144,7 @@ my-audiobook-player/
 - **[Expo Router](https://docs.expo.dev/router/introduction/)** – File-based navigation
 - **[react-native-track-player](https://rntp.dev/)** – Audio playback, background, lock screen & notification
 - **[react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/)** & **react-native-gesture-handler** – Animations and gestures
-- **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)** – Persistence (library, progress, notes, settings)
+- **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)** – Persistence (library, progress, bookmarks, settings)
 - **[expo-document-picker](https://docs.expo.dev/versions/latest/sdk/document-picker/)** – Import audio files
 - **[expo-image-picker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)** – Cover images
 - **[expo-localization](https://docs.expo.dev/versions/latest/sdk/localization/)** + **[i18n-js](https://github.com/fnando/i18n)** – Internationalization (en, pt-BR)
@@ -164,7 +164,7 @@ my-audiobook-player/
 3. **Skip backward / forward** – Left/right (intervals set in Settings).
 4. **Speed** – Tap to change playback speed.
 5. **Chapters** – Open part selector for multi-part books.
-6. **Note** – Add a note at the current position; open **View notes** to see and jump to notes.
+6. **Bookmark** – Add a bookmark at the current position; open **View bookmarks** to see and jump to bookmarks.
 7. **Sleep Timer** – Set a timer to pause playback after a number of minutes.
 
 ### Settings

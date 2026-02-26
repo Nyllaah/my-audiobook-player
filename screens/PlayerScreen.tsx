@@ -1,9 +1,9 @@
 import {
   PlayerArtwork,
+  PlayerChapterSection,
   PlayerEmptyState,
   PlayerPlaybackControls,
   PlayerProgress,
-  PlayerChapterSection,
   PlayerSecondaryControls,
   PlayerTrackInfo,
 } from '@/components/player';
@@ -74,8 +74,7 @@ const createStyles = (colors: typeof LightColors | typeof DarkColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: 36,
-      paddingBottom: 24,
+      paddingVertical: 36,
     },
     closeButton: {
       paddingHorizontal: 16,

@@ -43,11 +43,9 @@ export function BookmarkListModal({
         activeOpacity={0.7}
       >
         <Text style={styles.positionText}>{formatTime(item.positionSeconds)}</Text>
-        {item.label ? (
-          <Text style={styles.labelText} numberOfLines={2}>
-            {item.label}
-          </Text>
-        ) : null}
+        <Text style={styles.labelText} numberOfLines={3}>
+          {item.text}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.deleteButton}
