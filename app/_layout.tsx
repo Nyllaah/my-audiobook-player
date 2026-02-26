@@ -13,6 +13,7 @@ import TrackPlayer from 'react-native-track-player';
 import { AudiobookProvider } from '@/context/AudiobookContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { SettingsProvider } from '@/context/SettingsContext';
+import { SleepTimerProvider } from '@/context/SleepTimerContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { playbackService } from '@/services/playbackService';
 
@@ -51,6 +52,7 @@ export default function RootLayout() {
               }
             }}
           >
+            <SleepTimerProvider>
             <NavigationThemeProvider value={DefaultTheme}>
               <Stack initialRouteName="(tabs)">
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -74,6 +76,7 @@ export default function RootLayout() {
               </Stack>
               <StatusBar style="auto" />
             </NavigationThemeProvider>
+            </SleepTimerProvider>
           </AudiobookProvider>
         </SettingsProvider>
       </ThemeProvider>

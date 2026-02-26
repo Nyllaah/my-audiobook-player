@@ -1,26 +1,35 @@
 import { TIMING } from '@/constants/timing';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAudiobook } from '@/context/AudiobookContext';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-interface UseSleepTimerReturn {
+interface SleepTimerContextType {
   /** Remaining time in milliseconds, or null when no timer is set */
   sleepTimerRemainingMs: number | null;
   setSleepTimer: (minutes: number | null) => void;
   cancelTimer: () => void;
 }
 
+const SleepTimerContext = createContext<SleepTimerContextType | undefined>(undefined);
+
 /**
- * Custom hook for managing sleep timer functionality.
- * Ticks every second and stops playback when the end time is reached.
+ * Provider for sleep timer state so the timer persists across screen navigation.
+ * Must be rendered inside AudiobookProvider (uses togglePlayPause when timer ends).
  */
-export function useSleepTimer(
-  onTimerEnd: () => void | Promise<void>
-): UseSleepTimerReturn {
+export function SleepTimerProvider({ children }: { children: React.ReactNode }) {
+  const { togglePlayPause } = useAudiobook();
   const [sleepTimerRemainingMs, setSleepTimerRemainingMs] =
     useState<number | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerEndTimeRef = useRef<number | null>(null);
-  const onTimerEndRef = useRef(onTimerEnd);
-  onTimerEndRef.current = onTimerEnd;
+  const onTimerEndRef = useRef(togglePlayPause);
+  onTimerEndRef.current = togglePlayPause;
 
   const cancelTimer = useCallback(() => {
     if (timerIntervalRef.current) {
@@ -91,10 +100,23 @@ export function useSleepTimer(
     [cancelTimer]
   );
 
-  return {
+  const value: SleepTimerContextType = {
     sleepTimerRemainingMs,
     setSleepTimer,
     cancelTimer,
   };
+
+  return (
+    <SleepTimerContext.Provider value={value}>
+      {children}
+    </SleepTimerContext.Provider>
+  );
 }
 
+export function useSleepTimer(): SleepTimerContextType {
+  const context = useContext(SleepTimerContext);
+  if (!context) {
+    throw new Error('useSleepTimer must be used within SleepTimerProvider');
+  }
+  return context;
+}

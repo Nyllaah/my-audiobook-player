@@ -2,7 +2,7 @@ import { DarkColors, LightColors } from '@/constants/colors';
 import { useAudiobook } from '@/context/AudiobookContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
-import { useSleepTimer } from '@/hooks/useSleepTimer';
+import { useSleepTimer } from '@/context/SleepTimerContext';
 import { storageService } from '@/services/storageService';
 import { AudiobookBookmark } from '@/types/bookmark';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,12 +42,7 @@ export function PlayerSecondaryControls() {
   const [showTimerDialog, setShowTimerDialog] = useState(false);
   const [bookmarks, setBookmarks] = useState<AudiobookBookmark[]>([]);
 
-  const handleTimerEnd = useCallback(async () => {
-    await togglePlayPause();
-  }, [togglePlayPause]);
-
-  const { sleepTimerRemainingMs, setSleepTimer, cancelTimer } =
-    useSleepTimer(handleTimerEnd);
+  const { sleepTimerRemainingMs, setSleepTimer, cancelTimer } = useSleepTimer();
   const hasTimer = sleepTimerRemainingMs !== null;
 
   const loadBookmarks = useCallback(async () => {
