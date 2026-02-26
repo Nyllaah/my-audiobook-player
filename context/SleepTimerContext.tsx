@@ -20,16 +20,16 @@ const SleepTimerContext = createContext<SleepTimerContextType | undefined>(undef
 
 /**
  * Provider for sleep timer state so the timer persists across screen navigation.
- * Must be rendered inside AudiobookProvider (uses togglePlayPause when timer ends).
+ * Must be rendered inside AudiobookProvider (uses pauseIfPlaying when timer ends).
  */
 export function SleepTimerProvider({ children }: { children: React.ReactNode }) {
-  const { togglePlayPause } = useAudiobook();
+  const { pauseIfPlaying } = useAudiobook();
   const [sleepTimerRemainingMs, setSleepTimerRemainingMs] =
     useState<number | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerEndTimeRef = useRef<number | null>(null);
-  const onTimerEndRef = useRef(togglePlayPause);
-  onTimerEndRef.current = togglePlayPause;
+  const onTimerEndRef = useRef(pauseIfPlaying);
+  onTimerEndRef.current = pauseIfPlaying;
 
   const cancelTimer = useCallback(() => {
     if (timerIntervalRef.current) {

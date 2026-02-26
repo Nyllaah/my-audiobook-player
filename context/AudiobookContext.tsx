@@ -26,6 +26,7 @@ interface AudiobookContextType {
   removeAudiobook: (id: string) => Promise<void>;
   playAudiobook: (audiobook: Audiobook) => Promise<void>;
   togglePlayPause: () => Promise<void>;
+  pauseIfPlaying: () => Promise<void>;
   seekTo: (position: number) => Promise<void>;
   skipForward: () => Promise<void>;
   skipBackward: () => Promise<void>;
@@ -357,6 +358,21 @@ export function AudiobookProvider({ children, onNotificationCleared }: Audiobook
     }
   }, [saveCurrentProgress, currentBook, playAudiobook]);
 
+  const pauseIfPlaying = useCallback(async () => {
+    try {
+      const state = await withTimeout(
+        audioPlayerService.getState(),
+        TIMING.TRACK_PLAYER_CALL_TIMEOUT
+      );
+      if (state === PlayerState.Playing) {
+        await audioPlayerService.pause();
+        await saveCurrentProgress();
+      }
+    } catch {
+      // Ignore; e.g. service unbound
+    }
+  }, [saveCurrentProgress]);
+
   const seekTo = useCallback(async (position: number) => {
     lastSeekRef.current = { position, at: Date.now() };
     await audioPlayerService.seekTo(position);
@@ -402,6 +418,7 @@ export function AudiobookProvider({ children, onNotificationCleared }: Audiobook
         removeAudiobook,
         playAudiobook,
         togglePlayPause,
+        pauseIfPlaying,
         seekTo,
         skipForward,
         skipBackward,
